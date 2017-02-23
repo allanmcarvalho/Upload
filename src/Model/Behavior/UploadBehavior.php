@@ -71,11 +71,9 @@ class UploadBehavior extends Behavior
 
     public function beforeSave(Event $event, EntityInterface $entity, \ArrayObject $options)
     {
-
         foreach ($this->getConfig() as $field => $settings)
         {
-
-            if ($entity->has($field))
+            if ($entity->has($field) and $entity->dirty($field))
             {
                 if (Hash::get((array) $entity->get($field), 'error') !== UPLOAD_ERR_OK)
                 {
@@ -84,7 +82,7 @@ class UploadBehavior extends Behavior
                 }
 
                 $writer = $this->getWriter($entity, $field, $settings);
-                if(!$writer->write())
+                if (!$writer->write())
                 {
                     return false;
                 }
@@ -94,14 +92,74 @@ class UploadBehavior extends Behavior
 
     public function afterDelete(Event $event, Entity $entity, \ArrayObject $options)
     {
-        foreach ($this->config() as $field => $settings)
+        foreach ($this->getConfig() as $field => $settings)
         {
             if ($entity->has($field))
             {
                 $writer = $this->getWriter($entity, $field, $settings);
-                $writer->delete();
+                if (!$writer->delete())
+                {
+                    $result = false;
+                }
             }
         }
+        if (isset($result))
+        {
+            return $result;
+        }
+    }
+
+    /**
+     * Delete file(s) without delete entity
+     * @param EntityInterface $entity
+     * @param array $fields
+     * @return boolean
+     */
+    public function deleteFiles($entity, $fields = [])
+    {
+        if (empty($fields))
+        {
+            $configs = $this->getConfig();
+        } else
+        {
+            foreach ($fields as $field => $settings)
+            {
+                if (is_int($field))
+                {
+                    $configs[$settings] = [];
+                } else
+                {
+                    $configs[$field] = $settings;
+                }
+            }
+            $configs = array_intersect_key($this->getConfig(), $configs);
+        }
+
+        if (empty($configs))
+        {
+            return false;
+        }
+
+        $result = true;
+        foreach ($configs as $field => $settings)
+        {
+            if (!empty($entity->get($field)))
+            {
+                $writer = $this->getWriter($entity, $field, $settings);
+                if (!$writer->delete())
+                {
+                    $result = false;
+                }
+                $entity->set($field, null);
+            }
+        }
+
+        if (!$this->_table->save($entity))
+        {
+            return false;
+        }
+
+        return $result;
     }
 
     /**

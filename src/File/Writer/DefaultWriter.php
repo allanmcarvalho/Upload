@@ -13,14 +13,13 @@ use Cake\ORM\Entity;
 use Cake\Filesystem\File;
 use Cake\Filesystem\Folder;
 use Cake\Utility\Hash;
-use Intervention\Image\ImageManager;
 
 /**
  * Description of DefaultWriter
  *
  * @author allancarvalho
  */
-class DefaultWriter implements WriterInterface
+abstract class DefaultWriter implements WriterInterface
 {
 
     /**
@@ -60,10 +59,16 @@ class DefaultWriter implements WriterInterface
     protected $defaultPath = '';
 
     /**
+     * Destination file path
+     * @var string 
+     */
+    protected $path = null;
+
+    /**
      * Final file name
      * @var string 
      */
-    protected $fileName = null;
+    protected $filename = null;
 
     /**
      * Construct Method
@@ -78,62 +83,134 @@ class DefaultWriter implements WriterInterface
         $this->entity      = $entity;
         $this->field       = $field;
         $this->settings    = $settings;
-        $this->fileInfo    = $this->entity->get($this->field);
+        $this->fileInfo    = (array) $this->entity->get($this->field);
         $this->defaultPath = WWW_ROOT . 'files' . DS . $this->table->getAlias() . DS;
     }
 
-    public function write()
+    /**
+     * Delete a file from path
+     * @param string $PathAndFilename
+     * @return boolean
+     */
+    protected function _delete($path, $filename)
     {
-        
-    }
-
-    public function delete()
-    {
-        
+        $file = new File($path . $filename);
+        if ($file->exists())
+        {
+            if (!$file->delete())
+            {
+                \Cake\Log\Log::error(__d('upload', 'Unable to delete file "{0}" in entity id "{1}" from table "{2}" and path "{3}"', $filename, $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $path));
+                return false;
+            }
+        } else
+        {
+            \Cake\Log\Log::error(__d('upload', 'Unable to delete file "{0}" in entity id "{1}" from table "{2}" and path "{3}" because it does not exist', $filename, $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $path));
+            return false;
+        }
+        return true;
     }
 
     /**
      * Get a path to save file
      * @return string
      */
-    protected function getPath()
+    protected function getPath($subDirectory = null)
     {
-        $path = Hash::get($this->settings, 'path', $this->defaultPath);
+        if ($this->path === null)
+        {
+            $path       = Hash::get($this->settings, 'path', $this->defaultPath);
+            $this->path = empty($path) ? $this->defaultPath : (substr($path, -1) === DS ? $path : $path . DS);
 
-        return empty($path) ? $this->defaultPath : (substr($path, -1) === DS ? $path : $path . DS);
+            if (!is_dir($this->path))
+            {
+                $this->createFolderIfItNotExists($this->path);
+            }
+        }
+
+        if ($subDirectory !== null)
+        {
+            $subDirectory = substr($subDirectory, -1) === DS ? $subDirectory : $subDirectory . DS;
+            $this->createFolderIfItNotExists($this->path . $subDirectory);
+            return $this->path . $subDirectory;
+        } else
+        {
+            return $this->path;
+        }
     }
 
     /**
-     * Check if path exist
-     * @param bool $create Create a path if not exist
+     * Create a folder if it not exist
+     * @param string $path
      */
-    protected function checkPath($create = true)
-    {  
-        if (!new Folder($this->getPath(), $create))
+    protected function createFolderIfItNotExists($path)
+    {
+        if (!new Folder($path, true))
         {
-            \Cake\Log\Log::error(__d('upload', 'Unable to create directory: {0}', $this->getPath()));
+            \Cake\Log\Log::error(__d('upload', 'Unable to create directory: {0}', $path));
         }
+    }
+
+    /**
+     * get a image save format from behavior config
+     * @return type
+     */
+    protected function getConfigFileFormat()
+    {
+        if (Hash::get($this->settings, 'image', false))
+        {
+            $fileExtension = Hash::get($this->settings, 'image.format', 'jpg');
+            return substr($fileExtension, 0, 1) === '.' ? $fileExtension : '.' . $fileExtension;
+        } else
+        {
+            $fileExtension = pathinfo(Hash::get($this->fileInfo, 'name', 'err'), PATHINFO_EXTENSION);
+            return substr($fileExtension, 0, 1) === '.' ? $fileExtension : '.' . $fileExtension;
+        }
+    }
+
+    /**
+     * Create a new filename
+     * @param bool $ifExistCreateNew if true force to create a new filename
+     * @return string
+     */
+    protected function createFilename($ifExistCreateNew = false)
+    {
+        if ($this->filename === null)
+        {
+            $filePrefix            = Hash::get($this->settings, 'prefix', '');
+            $fileUniqidMoreEntropy = Hash::get($this->settings, 'more_entropy', true);
+            $this->filename        = Hash::get($this->settings, 'filename', uniqid($filePrefix, $fileUniqidMoreEntropy)) . $this->getConfigFileFormat();
+        } elseif ($ifExistCreateNew === true)
+        {
+            $filePrefix            = Hash::get($this->settings, 'prefix', '');
+            $fileUniqidMoreEntropy = Hash::get($this->settings, 'more_entropy', true);
+            $this->filename        = Hash::get($this->settings, 'filename', uniqid($filePrefix, $fileUniqidMoreEntropy)) . $this->getConfigFileFormat();
+        }
+
+        return $this->filename;
     }
 
     /**
      * Return a file name
      * @return string
      */
-    protected function getFileName()
+    protected function getFilename()
     {
-        if (debug_backtrace()[1]['function'] == 'write')
+        if ($this->filename === null)
         {
-            if ($this->fileName === null)
+            if ($this->entity->isNew())
             {
-                $filePrefix            = Hash::get($this->settings, 'prefix', '');
-                $fileUniqidMoreEntropy = Hash::get($this->settings, 'more_entropy', true);
-                $this->fileName        = Hash::get($this->settings, 'filename', uniqid($filePrefix, $fileUniqidMoreEntropy));
+                $this->createFilename();
+            } elseif (is_array($this->entity->get($this->field)))
+            {
+                $entity         = $this->table->get($this->entity->get($this->table->getPrimaryKey()));
+                $this->filename = $entity->get($this->field);
+            } else
+            {
+                $this->filename = $this->entity->get($this->field);
             }
-        }elseif(debug_backtrace()[1]['function'] == 'delete')
-        {
-            $this->fileName = $this->entity->get($this->field);
         }
-        return $this->fileName;
+
+        return $this->filename;
     }
 
 }

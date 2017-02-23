@@ -10,9 +10,10 @@ namespace Upload\File\Writer;
 
 use Cake\ORM\Table;
 use Cake\ORM\Entity;
+use Cake\Filesystem\Folder;
 use Cake\Filesystem\File;
 use Cake\Utility\Hash;
-use Intervention\Image\ImageManager;
+use Upload\File\Writer\Traits\ImageTrait;
 
 /**
  * Description of DefaultWriter
@@ -22,50 +23,92 @@ use Intervention\Image\ImageManager;
 class ImageWriter extends DefaultWriter
 {
 
-    private $maxHeigth         = false;
-    private $maxWidth          = false;
+    use ImageTrait;
+
+    private $resize_heigth     = false;
+    private $resize_width      = false;
+    private $crop_heigth       = false;
+    private $crop_width        = false;
+    private $crop_x            = false;
+    private $crop_y            = false;
     private $watermark         = false;
     private $watermarkPosition = false;
+    private $thumbnails        = [];
 
     public function __construct(Table $table, Entity $entity, $field, $settings)
     {
         parent::__construct($table, $entity, $field, $settings);
         $this->defaultPath = WWW_ROOT . 'img' . DS . $this->table->getAlias() . DS;
+
+        $this->resize_heigth     = Hash::get($this->settings, 'image.resize.height', false);
+        $this->resize_width      = Hash::get($this->settings, 'image.resize.width', false);
+        $this->crop_heigth       = Hash::get($this->settings, 'image.crop.height', false);
+        $this->crop_width        = Hash::get($this->settings, 'image.crop.width', false);
+        $this->crop_x            = Hash::get($this->settings, 'image.crop.x', null);
+        $this->crop_y            = Hash::get($this->settings, 'image.crop.y', null);
+        $this->watermark         = Hash::get($this->settings, 'image.watermark', false);
+        $this->watermarkPosition = Hash::get($this->settings, 'image.watermark_position', 'bottom-right');
+        $this->thumbnails        = Hash::get($this->settings, 'image.thumbnails', []);
     }
 
     public function write()
     {
-        $this->checkPath();
+        if (!$this->entity->isNew())
+        {
+            $this->delete(true);
+            $this->createFilename(true);
+        }
+
+
+
         $image = $this->getImage($this->fileInfo['tmp_name']);
 
-        $this->maxHeigth         = Hash::get($this->settings, 'image.max_height', false);
-        $this->maxWidth          = Hash::get($this->settings, 'image.max_width', false);
-        $this->watermark         = Hash::get($this->settings, 'image.watermark', false);
-        $this->watermarkPosition = Hash::get($this->settings, 'image.watermark_position', 'bottom-right');
+        $this->modifyImage($image);
 
-        $image = $this->modifyImage($image);
-
-        if ($image->save("{$this->getPath()}{$this->getFileName()}{$this->getImageFormat()}", $this->getImageQuality()))
+        if ($image->save("{$this->getPath()}{$this->getFilename()}", $this->getConfigImageQuality()))
         {
-            return $this->entity->set($this->field, "{$this->getFileName()}{$this->getImageFormat()}");
+            return $this->entity->set($this->field, "{$this->getFileName()}");
         } else
         {
+            \Cake\Log\Log::error(__d('upload', 'Unable to salve image "{0}" in entity id "{1}" from table "{2}" and path "{3}" because it does not exist', $this->getFileName(), $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $this->getPath()));
             return false;
         }
     }
 
-    public function delete()
+    /**
+     * Delete method that delete primary and thumbnails images
+     */
+    public function delete($isUptade = false)
     {
-        $file = new File("{$this->getPath()}{$this->getFileName()}");
-        if ($file->exists())
+        if ($isUptade === false)
         {
-            if (!$file->delete())
-            {
-                \Cake\Log\Log::error(__d('upload', 'Unable to delete file "{0}" in path "{1}"', $this->getFileName(), $this->getPath()));
-            }
+            $entity = &$this->entity;
         } else
         {
-            \Cake\Log\Log::error(__d('upload', 'Unable to delete file "{0}" in path "{1}" because it does not exist', $this->getFileName(), $this->getPath()));
+            $entity = $this->table->get($this->entity->get($this->table->getPrimaryKey()));
+        }
+
+        if (!empty($entity->get($this->field)))
+        {
+            $filename = $entity->get($this->field);
+            $this->_delete($this->getPath(), $filename);
+            $result   = false;
+            foreach ($this->thumbnails as $thumbnail)
+            {
+                $width      = Hash::get($thumbnail, 'width');
+                $height     = Hash::get($thumbnail, 'height');
+                $cropWidth  = Hash::get($thumbnail, 'crop.width', false);
+                $cropHeight = Hash::get($thumbnail, 'crop.height', false);
+
+                if ($cropWidth !== false and $cropHeight !== false)
+                {
+                    $result = $this->_delete($this->getPath("{$cropWidth}x{$cropHeight}"), $filename);
+                } else
+                {
+                    $result = $this->_delete($this->getPath("{$width}x{$height}"), $filename);
+                }
+            }
+            return $result;
         }
     }
 
@@ -76,100 +119,32 @@ class ImageWriter extends DefaultWriter
      */
     private function modifyImage($image)
     {
-        if ($this->maxHeigth !== false)
+        if ($this->resize_width !== false or $this->resize_heigth !== false)
         {
-            if ($this->maxHeigth < $image->height())
-            {
-                $image = $this->maxHeight($image, $this->maxHeigth);
-            }
+            $this->resize($image, $this->resize_width, $this->resize_heigth);
         }
 
-        if ($this->maxWidth !== false)
+        if ($this->crop_width !== false and $this->crop_heigth !== false)
         {
-            if ($this->maxWidth < $image->width())
-            {
-                $image = $this->maxWidth($image, $this->maxWidth);
-            }
+            $this->crop($image, $this->crop_width, $this->crop_heigth, $this->crop_x, $this->crop_y);
         }
 
+        if ($this->thumbnails !== false)
+        {
+            $this->createThumbnails(clone $image);
+        }
+        
         if ($this->watermark !== false)
         {
-            $image = $this->insertWatermark($image, $this->watermark, $this->watermarkPosition);
+            $this->insertWatermark($image, $this->watermark, $this->watermarkPosition);
         }
-
-        return $image;
     }
 
     /**
-     * Get a Intervention image object
-     * @param string $path
-     * @return \Intervention\Image\Image
+     * get a image quality from behavior config
+     * @return type
      */
-    private function getImage($path)
-    {
-        $manager = new ImageManager();
-        return $manager->make($path);
-    }
-
-    /**
-     * Set a max width of image if it is smaller than original
-     * @param \Intervention\Image\Image $image
-     * @return \Intervention\Image\Image
-     */
-    private function maxWidth($image, $width)
-    {
-        $image->resize($width, null, function ($constraint)
-        {
-            $constraint->aspectRatio();
-        });
-
-        return $image;
-    }
-
-    /**
-     * Set a max height of image if it is smaller than original
-     * @param \Intervention\Image\Image $image
-     * @return \Intervention\Image\Image
-     */
-    private function maxHeight($image, $heigt)
-    {
-
-        $image->resize(null, $heigt, function ($constraint)
-        {
-            $constraint->aspectRatio();
-        });
-
-        return $image;
-    }
-
-    /**
-     * Insert a watermark in image
-     * @param \Intervention\Image\Image $image
-     * @param string $path
-     * @param string $position
-     * @return \Intervention\Image\Image
-     */
-    public function insertWatermark($image, $path, $position)
-    {
-        $watermark = $this->getImage($path);
-
-        if($watermark->height() > intval($image->height() * 0.07))
-        {
-            $watermark = $this->maxHeight($watermark, intval($image->height() * 0.07));
-        }
-
-        $image->insert($watermark, $position, $image->width() * 0.05, $image->height() * 0.05);
-
-        return $image;
-    }
-
-    private function getImageFormat()
-    {
-        $imageFormat = Hash::get($this->settings, 'image.format', 'jpg');
-        return substr($imageFormat, 0, 1) === '.' ? $imageFormat : '.' . $imageFormat;
-    }
-
-    private function getImageQuality()
+    private function getConfigImageQuality()
     {
         return Hash::get($this->settings, 'image.quality', 100);
     }

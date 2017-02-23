@@ -8,9 +8,9 @@
 
 namespace Upload\File\Writer;
 
+use Cake\ORM\Table;
+use Cake\ORM\Entity;
 use Cake\Filesystem\File;
-use Cake\Utility\Hash;
-use Cake\Log\Log;
 
 /**
  * Description of DefaultWriter
@@ -20,41 +20,52 @@ use Cake\Log\Log;
 class FileWriter extends DefaultWriter
 {
 
+
+
+    public function __construct(Table $table, Entity $entity, $field, $settings)
+    {
+        parent::__construct($table, $entity, $field, $settings);
+        $this->defaultPath = WWW_ROOT . 'file' . DS . $this->table->getAlias() . DS;
+    }
+
     public function write()
     {
-        $this->checkPath();
-        $file = new File($this->fileInfo['tmp_name']);
-
-        if($file->copy("{$this->getPath()}{$this->getFileName()}{$this->getFileFormat()}"))
+        if (!$this->entity->isNew())
         {
-            $this->entity->set($this->field, "{$this->getFileName()}{$this->getFileFormat()}");
-            return true;
-        }else
-        {
-            Log::error(__d('upload', 'Unable to save file "{0}" in path "{1}"', $this->getFileName(), $this->getPath()));
-            return false;
+            $this->delete(true);
+            $this->createFilename(true);
         }
         
-    }
+        $file = new File($this->fileInfo['tmp_name'], true);
 
-    public function delete()
-    {
-        $file = new File("{$this->getPath()}{$this->getFileName()}");
-        if ($file->exists())
+        if ($file->copy("{$this->getPath()}{$this->getFilename()}"))
         {
-            if (!$file->delete())
-            {
-                Log::error(__d('upload', 'Unable to delete file "{0}" in path "{1}"', $this->getFileName(), $this->getPath()));
-            }
+            return $this->entity->set($this->field, "{$this->getFileName()}");
         } else
         {
-            Log::error(__d('upload', 'Unable to delete file "{0}" in path "{1}" because it does not exist', $this->getFileName(), $this->getPath()));
+            \Cake\Log\Log::error(__d('upload', 'Unable to salve file "{0}" in entity id "{1}" from table "{2}" and path "{3}" because it does not exist', $this->getFileName(), $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $this->getPath()));
+            return false;
         }
     }
 
-    private function getFileFormat()
+    /**
+     * Delete method that delete primary and thumbnails images
+     */
+    public function delete($isUptade = false)
     {
-        return '.' . pathinfo($this->fileInfo['name'], PATHINFO_EXTENSION);
+        if($isUptade === false)
+        {
+            $entity = &$this->entity;
+        }else
+        {
+            $entity = $this->table->get($this->entity->get($this->table->getPrimaryKey()));
+        }
+        
+        if (!empty($entity->get($this->field)))
+        {
+            $filename = $entity->get($this->field);
+            return $this->_delete($this->getPath(), $filename);
+        }
     }
 
 }
