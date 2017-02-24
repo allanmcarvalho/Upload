@@ -97,10 +97,22 @@ class ExamplesTable extends Table
                     'quality'    => 75,
                     'watermark'  => WWW_ROOT . 'img' . DS . 'watermark.png',
                     'watermark_position' => 'bottom-right'
+		    'resize' => [
+		    	'width' => 500,
+			'height' => 600,
+		    ],
+		    'crop' => [
+		    	'width' => 400,
+			'height' => 400,
+		    ],
                     'thumbnails' => [ // Optional
                         [
                             'width'  => 450,
                             'height' => 400,
+			    'crop' => [
+				'width' => 400,
+				'height' => 400,
+			    ],
                         ],
                         [
                             'width'     => 225,
@@ -118,18 +130,22 @@ class ExamplesTable extends Table
 >  - **crop:** (optional)  Crop the image. Default: **Does not have**;
 	 - **width:** (required) The crop image width. Default: **Does not have**;
 	 - **height:** (required) The crop image height. Default:  **Does not have**;
+	 - **x:** (required) The crop image x position. Default:  **Center**;
+	 - **y:** (required) The crop image y position. Default:  **Center**;
  - **format:** Image format. It can be (jpg, png, gif). Default: `jpg`;
  - **quality:** Image quality from 1 to 100. Default: `100`;
  - **resize:** (optional)  Changes the image size. Default: **Does not have**;
 	 - **width:** (optional) New image width. Default: **If height is set is automatic**;
 	 - **height:** (optional) New image height. Default: **If width is set is automatic**;
-	 - **crop:** (optional) Crop the new image. Default: **Does not have**;
-		 - **width:** (required) New image crop width. Default:**Does not have**;
-		 - **height:** (required) New image height. Default: **Does not have**;
  - **thumbnails:** (optional) Setting to set thumbnails to be created. Default: **Does not have**;
 	 - **width:** (required) Thumbnail width. Default: **Does not have**;
 	 - **height:** (required) Thumbnail height. Default: **Does not have**;
 	 - **watermark:** (optional) Sets whether the thumbnail will have the same watermark as the original image (if the original has). Default: `true`;
+	 - **crop:** (optional) Crop the new thumbnail image. Default: **Does not have**;
+		 - **width:** (required) New image crop width. Default:**Does not have**;
+		 - **height:** (required) New image height. Default: **Does not have**;
+		 - **x:** (required) The crop image x position. Default:  **Center**;
+	 	 - **y:** (required) The crop image y position. Default:  **Center**;
  - **watermark:** (optional) Watermak full file path. Default: **Does not have**;
  - **watermark_position:** (optional) Watermak orientation. Default: `bottom-right`. It can be:
 	 - **top-left**
