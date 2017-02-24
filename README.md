@@ -91,20 +91,20 @@ class ExamplesTable extends Table
 // in App\Model\Table\ExamplesTable.php
 	
 	$this->addBehavior('Upload.Upload', [
-            'file1'  => [
-                'image'  => [
-                    'format'     => 'jpg',
+		'file1'  => [
+			'image'  => [
+				'format'     => 'jpg',
                     'quality'    => 75,
                     'watermark'  => WWW_ROOT . 'img' . DS . 'watermark.png',
                     'watermark_position' => 'bottom-right'
-		    'resize' => [
-		    	'width' => 500,
-			'height' => 600,
-		    ],
-		    'crop' => [
-		    	'width' => 400,
-				'height' => 400,
-		    ],
+				    'resize' => [
+				    	'width' => 500,
+						'height' => 600,
+				    ],
+				    'crop' => [
+				    	'width' => 400,
+						'height' => 400,
+				    ],
                     'thumbnails' => [ // Optional
                         [
                             'width'  => 450,
@@ -119,9 +119,8 @@ class ExamplesTable extends Table
                             'height'    => 200,
                             'watermark' => false;
                         ]
-                    ],
-                ],
-                'prefix' => 'cover_'
+                    ]
+                ]
             ]
         ]);
 ```
