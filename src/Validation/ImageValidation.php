@@ -9,18 +9,16 @@
 namespace Upload\Validation;
 
 use Upload\Validation\Traits\ImageTrait;
-use Upload\Validation\Traits\UploadTrait;
 
 /**
  * Description of UploadValidation
  *
  * @author allancarvalho
  */
-class DefaultValidation
+class ImageValidation
 {
 
     use ImageTrait;
-    use UploadTrait;
 
     /**
      * Check if exist file

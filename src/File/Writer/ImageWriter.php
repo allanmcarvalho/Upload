@@ -10,8 +10,6 @@ namespace Upload\File\Writer;
 
 use Cake\ORM\Table;
 use Cake\ORM\Entity;
-use Cake\Filesystem\Folder;
-use Cake\Filesystem\File;
 use Cake\Utility\Hash;
 use Upload\File\Writer\Traits\ImageTrait;
 
@@ -25,32 +23,101 @@ class ImageWriter extends DefaultWriter
 
     use ImageTrait;
 
-    private $resize_heigth     = false;
-    private $resize_width      = false;
-    private $crop_heigth       = false;
-    private $crop_width        = false;
-    private $crop_x            = false;
-    private $crop_y            = false;
-    private $watermark         = false;
-    private $watermarkPosition = false;
-    private $thumbnails        = [];
+    /**
+     * value of resize height
+     * @var int 
+     */
+    private $resize_heigth = false;
 
+    /**
+     * value of resize width
+     * @var int 
+     */
+    private $resize_width = false;
+
+    /**
+     * value of crop height
+     * @var int 
+     */
+    private $crop_heigth = false;
+
+    /**
+     * value of crop width
+     * @var int 
+     */
+    private $crop_width = false;
+
+    /**
+     * value of crop x position
+     * @var int 
+     */
+    private $crop_x = false;
+
+    /**
+     * value of crop y position
+     * @var int 
+     */
+    private $crop_y = false;
+
+    /**
+     * value of watermark file path
+     * @var string 
+     */
+    private $watermark = false;
+
+    /**
+     * position of watermark
+     * @var string 
+     */
+    private $watermark_position = false;
+
+    /**
+     * opacity of watermark
+     * @var string 
+     */
+    private $watermark_opacity = false;
+
+    /**
+     * ignore watermark on default image
+     * @var bool 
+     */
+    private $watermark_ignore_default = false;
+
+    /**
+     * array with thumbnails settings
+     * @var array 
+     */
+    private $thumbnails = [];
+
+    /**
+     * Constructor method
+     * @param Table $table
+     * @param Entity $entity
+     * @param type $field
+     * @param type $settings
+     */
     public function __construct(Table $table, Entity $entity, $field, $settings)
     {
         parent::__construct($table, $entity, $field, $settings);
         $this->defaultPath = WWW_ROOT . 'img' . DS . $this->table->getAlias() . DS;
 
-        $this->resize_heigth     = Hash::get($this->settings, 'image.resize.height', false);
-        $this->resize_width      = Hash::get($this->settings, 'image.resize.width', false);
-        $this->crop_heigth       = Hash::get($this->settings, 'image.crop.height', false);
-        $this->crop_width        = Hash::get($this->settings, 'image.crop.width', false);
-        $this->crop_x            = Hash::get($this->settings, 'image.crop.x', null);
-        $this->crop_y            = Hash::get($this->settings, 'image.crop.y', null);
-        $this->watermark         = Hash::get($this->settings, 'image.watermark', false);
-        $this->watermarkPosition = Hash::get($this->settings, 'image.watermark_position', 'bottom-right');
-        $this->thumbnails        = Hash::get($this->settings, 'image.thumbnails', []);
+        $this->resize_heigth            = Hash::get($this->settings, 'image.resize.height', false);
+        $this->resize_width             = Hash::get($this->settings, 'image.resize.width', false);
+        $this->crop_heigth              = Hash::get($this->settings, 'image.crop.height', false);
+        $this->crop_width               = Hash::get($this->settings, 'image.crop.width', false);
+        $this->crop_x                   = Hash::get($this->settings, 'image.crop.x', null);
+        $this->crop_y                   = Hash::get($this->settings, 'image.crop.y', null);
+        $this->watermark                = Hash::get($this->settings, 'image.watermark.path', false);
+        $this->watermark_position       = Hash::get($this->settings, 'image.watermark.position', 'bottom-right');
+        $this->watermark_opacity        = Hash::get($this->settings, 'image.watermark.opacity', 100);
+        $this->watermark_ignore_default = Hash::get($this->settings, 'image.watermark.ignore_default', false);
+        $this->thumbnails               = Hash::get($this->settings, 'image.thumbnails', []);
     }
 
+    /**
+     * write a image
+     * @return boolean
+     */
     public function write()
     {
         if (!$this->entity->isNew())
@@ -58,8 +125,6 @@ class ImageWriter extends DefaultWriter
             $this->delete(true);
             $this->createFilename(true);
         }
-
-
 
         $image = $this->getImage($this->fileInfo['tmp_name']);
 
@@ -76,7 +141,8 @@ class ImageWriter extends DefaultWriter
     }
 
     /**
-     * Delete method that delete primary and thumbnails images
+     * delete images
+     * @param bool $isUptade
      */
     public function delete($isUptade = false)
     {
@@ -88,28 +154,95 @@ class ImageWriter extends DefaultWriter
             $entity = $this->table->get($this->entity->get($this->table->getPrimaryKey()));
         }
 
+        $result = true;
         if (!empty($entity->get($this->field)))
         {
             $filename = $entity->get($this->field);
-            $this->_delete($this->getPath(), $filename);
-            $result   = false;
-            foreach ($this->thumbnails as $thumbnail)
+            if (!$this->deleteThubnails($this->getPath(), $filename))
             {
-                $width      = Hash::get($thumbnail, 'width');
-                $height     = Hash::get($thumbnail, 'height');
-                $cropWidth  = Hash::get($thumbnail, 'crop.width', false);
-                $cropHeight = Hash::get($thumbnail, 'crop.height', false);
+                $result = false;
+            }
+            if (!$this->_delete($this->getPath(), $filename))
+            {
+                $result = false;
+            }
+        }
+        return $result;
+    }
 
-                if ($cropWidth !== false and $cropHeight !== false)
+    /**
+     * Delete image thumbnails
+     * @param \Intervention\Image\Image $image
+     */
+    public function deleteThubnails($path, $filename)
+    {
+        if (!is_file($path . $filename))
+        {
+            return false;
+        }
+        $image  = $this->getImage($path . $filename);
+        $result = true;
+        foreach ($this->thumbnails as $thumbnail)
+        {
+            $width      = Hash::get($thumbnail, 'width', false);
+            $height     = Hash::get($thumbnail, 'height', false);
+            $cropWidth  = Hash::get($thumbnail, 'crop.width', false);
+            $cropHeight = Hash::get($thumbnail, 'crop.height', false);
+
+            if ($width === false and $height === false)
+            {
+                return false;
+            }
+
+            if ($width === false)
+            {
+                $newWidth = $this->getEquivalentResizeWidth($image, $height);
+                $width    = $newWidth <= $image->width() ? $newWidth : $image->width();
+            } else
+            {
+                $width = $width <= $image->width() ? $width : $image->width();
+            }
+
+            if ($height === false)
+            {
+                $newHeight = $this->getEquivalentResizeHeight($image, $width);
+                $height    = $newHeight <= $image->height() ? $newHeight : $image->height();
+            } else
+            {
+                $height = $height <= $image->height() ? $height : $image->height();
+            }
+
+            if ($cropWidth !== false or $cropHeight !== false)
+            {
+                if ($cropWidth === false)
                 {
-                    $result = $this->_delete($this->getPath("{$cropWidth}x{$cropHeight}"), $filename);
+                    $cropWidth = $cropHeight <= $width ? $cropHeight : $width;
                 } else
                 {
-                    $result = $this->_delete($this->getPath("{$width}x{$height}"), $filename);
+                    $cropWidth = $cropWidth <= $width ? $cropWidth : $width;
+                }
+
+                if ($cropHeight === false)
+                {
+                    $cropHeight = $cropWidth <= $height ? $cropWidth : $height;
+                } else
+                {
+                    $cropHeight = $cropHeight <= $height ? $cropHeight : $height;
+                }
+
+                if (!$this->_delete($this->getPath("{$cropWidth}x{$cropHeight}"), $filename))
+                {
+                    $result = false;
+                }
+            } else
+            {
+                if (!$this->_delete($this->getPath("{$width}x{$height}"), $filename))
+                {
+                    $result = false;
                 }
             }
-            return $result;
         }
+        return $result;
     }
 
     /**
@@ -119,24 +252,15 @@ class ImageWriter extends DefaultWriter
      */
     private function modifyImage($image)
     {
-        if ($this->resize_width !== false or $this->resize_heigth !== false)
-        {
-            $this->resize($image, $this->resize_width, $this->resize_heigth);
-        }
+        $this->resize($image, $this->resize_width, $this->resize_heigth);
 
-        if ($this->crop_width !== false and $this->crop_heigth !== false)
-        {
-            $this->crop($image, $this->crop_width, $this->crop_heigth, $this->crop_x, $this->crop_y);
-        }
+        $this->crop($image, $this->crop_width, $this->crop_heigth, $this->crop_x, $this->crop_y);
 
-        if ($this->thumbnails !== false)
+        $this->createThumbnails();
+
+        if ($this->watermark !== false and $this->watermark_ignore_default !== true)
         {
-            $this->createThumbnails(clone $image);
-        }
-        
-        if ($this->watermark !== false)
-        {
-            $this->insertWatermark($image, $this->watermark, $this->watermarkPosition);
+            $this->insertWatermark($image, $this->watermark, $this->watermark_position, $this->watermark_opacity);
         }
     }
 

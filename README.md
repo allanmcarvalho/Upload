@@ -44,23 +44,10 @@ class ExamplesTable extends Table
 > **Note:**
 > Just adding the `Upload.Upload` **Behavior** does not mean it's ready, in fact, if you just add, nothing will happen. You must define which table columns are going to be responsible for storing the file name as shown above (`file1` and `file2`).
 
-####**2** - Now should open the view from the form and configure the `form` and `input` to be of the file type.
-
-```php
-// in App\Template\Controller\add.ctp
-...
-	<?= $this->Form->create($example, ['type' => 'file']) ?>
-	<?= $this->Form->control('title') ?>
-	<?= $this->Form->control('file1', ['type' => 'file']) ?>
-	<?= $this->Form->control('file2', ['type' => 'file']) ?>
-    <?= $this->Form->button(__('Submit')) ?>
-    <?= $this->Form->end() ?>
-...
-```
 
 ### Available **Behavior** settings
 
- - **path:** 
+> **Note:** The configuration name must be the same as the table column name. In this example is `file1`.
  
 ```php
 // in App\Model\Table\ExamplesTable.php
@@ -86,82 +73,275 @@ class ExamplesTable extends Table
 
 
  - **image:** Set of settings for image uploads;
- 
 ```php
 // in App\Model\Table\ExamplesTable.php
 	
 	$this->addBehavior('Upload.Upload', [
 		'file1'  => [
 			'image'  => [
-				'format'     => 'jpg',
-				'quality'    => 75,
-				'watermark'  => WWW_ROOT . 'img' . DS . 'watermark.png',
-				'watermark_position' => 'bottom-right'
-				'resize' => [
-					'width' => 500,
-					'height' => 600,
-				],
 				'crop' => [
-					'width' => 400,
-					'height' => 400,
+					'width' => 600 // Height will be the same
+				],
+				'format' => 'png',
+				'quality' => 75, 
+				'resize' => [
+					'height' => 750, // width will be automatically calculated
 				],
 				'thumbnails' => [
 					[
-						'width'  => 450,
-						'height' => 400,
-						'crop' => [
-							'width' => 400,
-							'height' => 400,
-						],
+						'height' => 750, // width will be automatically calculated
+						'watermark' => false // Disables watermark for this item
 					],
 					[
-						'width'     => 225,
-						'height'    => 200,
-						'watermark' => false;
+						'height' => 750,
+						'width' => 750,
+						'watermark' => [
+							'opacity' => 60, // 60% of opacity
+							'position' => 'top', // center top position
+							'path' => WWW_ROOT . 'img' . DS . 'watermark2.png',
+						],
+						'crop' => [
+							'width' => 600 // Height will be the same 
+						]
 					]
+				],
+				'watermark' => [
+					'ignore_default' => true, //do not insert watermark on default
+					'opacity' => 10, // 10% of opacity
+					'path' => WWW_ROOT . 'img' . DS . 'watermark.png',
+					'position' => 'bottom-right'
 				]
 			]
 		]
 	]);
 ```
 > **Image options:**
-> 
->  - **crop:** (optional)  Crop the image. Default: **Does not have**;
-	 - **width:** (required) The crop image width. Default: **Does not have**;
-	 - **height:** (required) The crop image height. Default:  **Does not have**;
-	 - **x:** (required) The crop image x position. Default:  **Center**;
-	 - **y:** (required) The crop image y position. Default:  **Center**;
+>  > **Note:** Compatibility formats to use these settings: `jpg`, `png` and `gif`.
+>  
+>  - **crop:** (optional)  Crop the image. **Obs.:** If resize is also configured, it will be done before crop. Default: **Does not have**;
+	 - **width:** (at least one) The crop image width. Default: **If height is set is the same**;
+	 - **height:** (at least one) The crop image height. Default:  **If widthis set is the same**;
+	 - **x:** (optional) The crop image x position based from left. Default:  **Center**;
+	 - **y:** (optional) The crop image y position based from top. Default:  **Center**;
  - **format:** Image format. It can be (jpg, png, gif). Default: `jpg`;
  - **quality:** Image quality from 1 to 100. Default: `100`;
  - **resize:** (optional)  Changes the image size. Default: **Does not have**;
-	 - **width:** (optional) New image width. Default: **If height is set is automatic**;
-	 - **height:** (optional) New image height. Default: **If width is set is automatic**;
+	 - **width:** (at least one) New image width. Default: **If height is set is automatic**;
+	 - **height:** (at least one) New image height. Default: **If width is set is automatic**;
  - **thumbnails:** (optional) Setting to set thumbnails to be created. Default: **Does not have**;
-	 - **width:** (required) Thumbnail width. Default: **Does not have**;
-	 - **height:** (required) Thumbnail height. Default: **Does not have**;
-	 - **watermark:** (optional) Sets whether the thumbnail will have the same watermark as the original image (if the original has). Default: `true`;
-	 - **crop:** (optional) Crop the new thumbnail image. Default: **Does not have**;
+	 - **width:** (at least one) Thumbnail width. Default: **If height is set is automatic**;
+	 - **height:** (at least one) Thumbnail height. Default: **If width is set is automatic**;
+	 - **watermark:** (optional) If `true` follows the default image settings (if exists). If `false` does not insert the watermark. If any setting is passed in an **array**, overwrites the default image settings. Default: `true`;
+		 - **opacity:** (optional) Watermak opacity from 1 to 100 where the smaller is more transparent. Default:  **Same as original**.
+		 - **path:** (optional) Path to watermark image for this thumbnail. Default: **Same as original**;
+		 - **position:** (optional) Watermak orientation. Default: `bottom-right`. It can be the same positions quotes below;
+	 - **crop:** (optional) Crop the new thumbnail image. **Obs.:** If resize is also configured, it will be done before crop. Default: **Does not have**;
 		 - **width:** (required) New image crop width. Default:**Does not have**;
 		 - **height:** (required) New image height. Default: **Does not have**;
 		 - **x:** (required) The crop image x position. Default:  **Center**;
 	 	 - **y:** (required) The crop image y position. Default:  **Center**;
- - **watermark:** (optional) Watermak full file path. Default: **Does not have**;
- - **watermark_position:** (optional) Watermak orientation. Default: `bottom-right`. It can be:
-	 - **top-left**
-	 - **top**
-	 - **top-right**
-	 - **left**
-	 - **center**
-	 - **right**
-	 - **bottom-left**
-	 - **bottom**
-	 - **bottom-right**
+ - **watermark:** Insert watermark on image. Default: **Does not have**;
+	- **ignore_default:** (optional) If `true` ignores the watermark in the default image. Default: `false`;
+	- **opacity:** (optional) Watermak opacity from 1 to 100 where the smaller is more transparent. Default:  `100`.
+	- **path:** (required) Path to watermark image. Default:**Does not have**;
+	- **position:** (optional) Watermak orientation. Default: `bottom-right`. It can be:
+		- **top-left**
+		- **top**
+		- **top-right**
+		- **left**
+		- **center**
+		- **right**
+		- **bottom-left**
+		- **bottom**
+		- **bottom-right**
+ 
+
+####**2** - Now should open the view from the form and configure the `form` and `input` to be of the file type.
+
+```php
+// in App\Template\Controller\add.ctp
+...
+	<?= $this->Form->create($example, ['type' => 'file']) ?>
+	<?= $this->Form->control('title') ?>
+	<?= $this->Form->control('file1', ['type' => 'file']) ?>
+	<?= $this->Form->control('file2', ['type' => 'file']) ?>
+    <?= $this->Form->button(__('Submit')) ?>
+    <?= $this->Form->end() ?>
+...
+```
+
+####**3** - Deleting files without deleting entity
+
+```php
+// in App\Controller\ExampleController.php
+...
+public function deleteFiles($id)
+{
+	$this->request->allowMethod(['post', 'delete']);
+	$example = $this->Examples->get($id);
+	if ($this->Examples->deleteFiles($example)) {
+		$this->Flash->success(__('The files has been deleted.'));
+	} else {
+		$this->Flash->error(__('The files could not be deleted. Please, try again.'));
+	}
+	return $this->redirect(['action' => 'index']);
+}
+...
+```
+
+or
+
+```php
+// in App\Controller\ExampleController.php
+...
+public function deleteFiles($id)
+{
+	$this->request->allowMethod(['post', 'delete']);
+	$example = $this->Examples->get($id);
+	if ($this->Examples->deleteFiles($example, ['file1'])) {
+		$this->Flash->success(__('The files has been deleted.'));
+	} else {
+		$this->Flash->error(__('The files could not be deleted. Please, try again.'));
+	}
+	return $this->redirect(['action' => 'index']);
+}
+...
+```
+
+> **Note:** The `deleteFiles($entity, $fields = [])` method is a table method added by behavior and you can even use inside the **table** class.
 
 
-License
+####**4** - Validations
+
+There are two types of validators, one to validate information of the files called `UploadValidation`, and one that after additional features to validate images called  `ImageValidation`. You can also use the two in one by calling `DefaultValidation`.
+
+```php
+// in App/Model/Table/ExampleTable.php
+// Contain files validations
+	public function validationDefault(Validator $validator)
+	{
+		$validator->setProvider('upload', \Upload\Validation\UploadValidation::class);
+
+		$validator
+			->add('file1', 'isUnderPhpSizeLimit', [
+				'rule' => 'isUnderPhpSizeLimit', 
+				'message' => 'Must have a wider width',
+				'provider' => 'upload'
+			]);
+		
+		$validator
+			->add('file1', 'isUnderFormSizeLimit', [
+				'rule' => 'isUnderFormSizeLimit',
+				'message' => 'Must have the shortest width',
+				'provider' => 'upload'
+			]);
+			
+		$validator
+			->add('file1', 'isCompletedUpload', [
+				'rule' => 'isCompletedUpload',
+				'message' => 'Must have a wider height',
+				'provider' => 'upload'
+			]);
+			
+		$validator
+			->add('file1', 'isFileUpload', [
+				'rule' => 'isFileUpload',
+				'message' => 'Must have the shortest height',
+				'provider' => 'upload'
+			]);
+			
+		$validator
+			->add('file1', 'isSuccessfulWrite', [
+				'rule' => 'isSuccessfulWrite',
+				'message' => 'Wrong aspect ratio',
+				'provider' => 'upload'
+			]);
+			
+		$validator
+			->add('file1', 'isAboveMinSize', [
+				'rule' => ['isAboveMinSize', 2048],
+				'message' => 'Wrong image extension',
+				'provider' => 'upload'
+			]);
+		$validator
+			->add('file1', 'isBelowMaxSize', [
+				'rule' => ['isBelowMaxSize', 2048],
+				'message' => 'Must have the shortest height',
+				'provider' => 'upload'
+			]);
+			
+		$validator
+			->add('file1', 'isThisMimeType', [
+				'rule' => ['isThisMimeType', ['image/jpeg', 'image/png']],
+				'message' => 'Wrong aspect ratio',
+				'provider' => 'upload'
+			]);
+	}
+```
+
+or
+```php
+// in App/Model/Table/ExampleTable.php
+// Contain image validations
+	public function validationDefault(Validator $validator)
+	{
+		$validator->setProvider('upload', \Upload\Validation\ImageValidation::class);
+
+		$validator
+			->add('file1', 'isAboveMinWidth', [
+				'rule' => ['isAboveMinWidth', 100], 
+				'message' => 'Must have a wider width',
+				'provider' => 'upload'
+			]);
+		
+		$validator
+			->add('file1', 'isBelowMaxWidth', [
+				'rule' => ['isBelowMaxWidth', 900],
+				'message' => 'Must have the shortest width',
+				'provider' => 'upload'
+			]);
+			
+		$validator
+			->add('file1', 'isAboveMinHeight', [
+				'rule' => ['isAboveMinHeight', 100],
+				'message' => 'Must have a wider height',
+				'provider' => 'upload'
+			]);
+			
+		$validator
+			->add('file1', 'isBelowMaxHeight', [
+				'rule' => ['isBelowMaxHeight', 900],
+				'message' => 'Must have the shortest height',
+				'provider' => 'upload'
+			]);
+			
+		$validator
+			->add('file1', 'isThisAspectRatio', [
+				'rule' => ['isThisAspectRatio', 3, 4],
+				'message' => 'Wrong aspect ratio',
+				'provider' => 'upload'
+			]);
+			
+		$validator
+			->add('file1', 'isThisExtension', [
+				'rule' => ['isThisExtension', ['jpg', 'png']],
+				'message' => 'Wrong image extension',
+				'provider' => 'upload'
+			]);
+			
+	}
+```
+or
+```php
+// in App/Model/Table/ExampleTable.php
+// Contains both validations
+	public function validationDefault(Validator $validator)
+	{
+		$validator->setProvider('upload', \Upload\Validation\DefaultValidation::class);
+		...
+	}
+```
+
+####**License: [MIT](https://opensource.org/licenses/MIT)**
 
 
-----------
-
-
-MIT

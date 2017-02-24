@@ -8,7 +8,6 @@
 
 namespace Upload\Validation;
 
-use Upload\Validation\Traits\ImageTrait;
 use Upload\Validation\Traits\UploadTrait;
 
 /**
@@ -16,10 +15,9 @@ use Upload\Validation\Traits\UploadTrait;
  *
  * @author allancarvalho
  */
-class DefaultValidation
+class UploadValidation
 {
 
-    use ImageTrait;
     use UploadTrait;
 
     /**

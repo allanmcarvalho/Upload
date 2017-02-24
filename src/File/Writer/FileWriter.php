@@ -28,6 +28,10 @@ class FileWriter extends DefaultWriter
         $this->defaultPath = WWW_ROOT . 'file' . DS . $this->table->getAlias() . DS;
     }
 
+    /**
+     * write a file
+     * @return boolean
+     */
     public function write()
     {
         if (!$this->entity->isNew())
@@ -50,6 +54,8 @@ class FileWriter extends DefaultWriter
 
     /**
      * Delete method that delete primary and thumbnails images
+     * @param bool $isUptade
+     * @return bool
      */
     public function delete($isUptade = false)
     {

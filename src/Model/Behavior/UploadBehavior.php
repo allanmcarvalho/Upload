@@ -69,6 +69,13 @@ class UploadBehavior extends Behavior
         }
     }
 
+    /**
+     * 
+     * @param Event $event
+     * @param EntityInterface $entity
+     * @param \ArrayObject $options
+     * @return boolean
+     */
     public function beforeSave(Event $event, EntityInterface $entity, \ArrayObject $options)
     {
         foreach ($this->getConfig() as $field => $settings)

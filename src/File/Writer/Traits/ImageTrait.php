@@ -48,32 +48,25 @@ trait ImageTrait
      */
     protected function resize($image, $width, $height)
     {
-        if ($width != false and $height != false)
+        if ($width !== false or $height !== false)
         {
-            if ($width < $image->width() and $height < $image->height())
+            if ($width === false)
             {
-                $image->resize($width, $height);
-            }
-        } elseif ($width != false)
-        {
-            if ($width < $image->width())
+                $width = $this->getEquivalentResizeWidth($image, $height);
+            } else
             {
-                $image->resize($width, null, function ($constraint)
-                {
-                    $constraint->aspectRatio();
-                });
+                $width = $width <= $image->width() ? $width : $image->width();
             }
-        } elseif ($height != false)
-        {
-            if ($height < $image->height())
+
+            if ($height === false)
             {
-                $image->resize(null, $height, function ($constraint)
-                {
-                    $constraint->aspectRatio();
-                });
+                $height = $this->getEquivalentResizeHeight($image, $width);
+            } else
+            {
+                $height = $height <= $image->height() ? $height : $image->height();
             }
+            $image->resize($width, $height);
         }
-        return $image;
     }
 
     /**
@@ -85,7 +78,34 @@ trait ImageTrait
      */
     protected function crop($image, $width, $height, $x, $y)
     {
-        $image->crop($width, $height, $x, $y);
+        if ($width !== false or $height !== false)
+        {
+            if ($width === false)
+            {
+                $width = $height <= $image->width() ? $height : $image->width();
+            } else
+            {
+                $width = $width <= $image->width() ? $width : $image->width();
+            }
+
+            if ($height === false)
+            {
+                $height = $width <= $image->height() ? $width : $image->height();
+            } else
+            {
+                $height = $height <= $image->height() ? $height : $image->height();
+            }
+
+            if ($x != null and ( $x + $width) > $image->width())
+            {
+                $x = $image->width() - $width;
+            }
+            if ($y != null and ( $y + $height) > $image->height())
+            {
+                $y = $image->height() - $height;
+            }
+            $image->crop($width, $height, $x, $y);
+        }
     }
 
     /**
@@ -95,16 +115,25 @@ trait ImageTrait
      * @param string $position
      * @return \Intervention\Image\Image
      */
-    protected function insertWatermark($image, $path, $position)
+    protected function insertWatermark($image, $path, $position, $opacity)
     {
-        $watermark             = $this->getImage($path);
-        $targetWarthermarkSize = intval($image->height() * 0.07);
-        if ($watermark->height() > $targetWarthermarkSize)
+        $watermark               = $this->getImage($path);
+        $targetHeight            = intval($image->height() * 0.07);
+        $targetWarthermarkHeight = $targetHeight <= $watermark->height() ? $targetHeight : $watermark->height();
+        $targetWarthermarkWidth  = $this->getEquivalentResizeWidth($watermark, $targetWarthermarkHeight);
+        
+        if($targetWarthermarkWidth > $image->width())
         {
-            $watermark = $this->resize($watermark, null, $targetWarthermarkSize);
+            $targetWidth = intval($image->width() * 0.8);
+            $targetWarthermarkWidth = $targetWidth <= $watermark->width() ? $targetWidth : $watermark->width();
+            $targetWarthermarkHeight = $this->getEquivalentResizeHeight($image, $targetWarthermarkWidth);
         }
 
-        $image->insert($watermark, $position, intval($image->width() * 0.05), intval($image->height() * 0.05));
+        $this->resize($watermark, $targetWarthermarkWidth, $targetWarthermarkHeight);
+        
+        $watermark->opacity($opacity);
+
+        $image->insert($watermark, $position, round($image->width() * 0.05), round($image->height() * 0.05));
     }
 
     /**
@@ -112,40 +141,94 @@ trait ImageTrait
      * @param \Intervention\Image\Image $thumbnailImage
      * @return boolean
      */
-    protected function createThumbnails($thumbnailImage)
+    protected function createThumbnails()
     {
+        if ($this->thumbnails === false)
+        {
+            return false;
+        }
         foreach ($this->thumbnails as $thumbnail)
         {
-            $width      = Hash::get($thumbnail, 'width');
-            $height     = Hash::get($thumbnail, 'height');
-            $cropWidth  = Hash::get($thumbnail, 'crop.width', false);
-            $cropHeight = Hash::get($thumbnail, 'crop.height', false);
-            $cropX      = Hash::get($thumbnail, 'crop.x', null);
-            $cropY      = Hash::get($thumbnail, 'crop.y', null);
+            $newThumbnail = $this->getImage($this->fileInfo['tmp_name']);
+            $width        = Hash::get($thumbnail, 'width', false);
+            $height       = Hash::get($thumbnail, 'height', false);
+            $cropWidth    = Hash::get($thumbnail, 'crop.width', false);
+            $cropHeight   = Hash::get($thumbnail, 'crop.height', false);
+            $cropX        = Hash::get($thumbnail, 'crop.x', null);
+            $cropY        = Hash::get($thumbnail, 'crop.y', null);
 
-            $this->resize($thumbnailImage, $width, $height);
-
-            if ($cropWidth !== false and $cropHeight !== false)
+            if ($width === false)
             {
-                $this->crop($thumbnailImage, $cropWidth, $cropHeight, $cropX, $cropY);
-                $thumbnailPath = $this->getPath("{$cropWidth}x{$cropHeight}");
-            } else
-            {
-                $thumbnailPath = $this->getPath("{$width}x{$height}");
+                $width = $this->getEquivalentResizeWidth($newThumbnail, $height);
             }
 
-            if (Hash::get($thumbnail, 'watermark', true))
+            if ($height === false)
             {
-                if ($this->watermark !== false)
-                {
-                    $this->insertWatermark($thumbnailImage, $this->watermark, $this->watermarkPosition);
-                }
+                $height = $this->getEquivalentResizeHeight($newThumbnail, $width);
             }
-            if (!$thumbnailImage->save($thumbnailPath . $this->getFilename(), $this->getConfigImageQuality()))
+
+            $this->resize($newThumbnail, $width, $height);
+
+            if ($cropWidth !== false or $cropHeight !== false)
+            {
+                $this->crop($newThumbnail, $cropWidth, $cropHeight, $cropX, $cropY);
+            }
+
+            $watermarkPath = Hash::get($thumbnail, 'watermark.path', $this->watermark);
+            if(empty($watermarkPath))
+            {
+                $watermarkPath = $this->watermark;
+            }
+            if ($watermarkPath !== false and Hash::get($thumbnail, 'watermark', true))
+            {
+                $watermarkPosition = Hash::get($thumbnail, 'watermark.position', $this->watermark_position);
+                $watermarkOpacity = Hash::get($thumbnail, 'watermark.opacity', $this->watermark_opacity);
+                $this->insertWatermark($newThumbnail, $watermarkPath, $watermarkPosition, $watermarkOpacity);
+            }
+
+            if (!$newThumbnail->save($this->getPath("{$newThumbnail->getWidth()}x{$newThumbnail->getHeight()}") . $this->getFilename(), $this->getConfigImageQuality()))
             {
                 \Cake\Log\Log::error(__d('upload', 'Unable to salve thumbnail "{0}" in entity id "{1}" from table "{2}" and path "{3}" because it does not exist', $this->getFileName(), $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $this->getPath()));
             }
+            unset($newThumbnail);
         }
+    }
+
+    /**
+     * Calculate greatest common divisor of $dividend_a and $dividend_b
+     * @param int $dividend_a
+     * @param int $dividend_b
+     * @return int
+     */
+    private function greatestCommonDivisor($dividend_a, $dividend_b)
+    {
+        return ($dividend_a % $dividend_b) ? $this->greatestCommonDivisor($dividend_b, $dividend_a % $dividend_b) : $dividend_b;
+    }
+
+    /**
+     * 
+     * @param Image $image
+     * @param int $newImageHeight
+     * @return int
+     */
+    private function getEquivalentResizeWidth($image, $newImageHeight)
+    {
+        $imageWidht  = $image->width();
+        $imageHeight = $image->height();
+        $gcd         = round($this->greatestCommonDivisor($imageWidht, $imageHeight));
+        $widthRadio  = round($imageWidht / $gcd);
+        $heigthRadio = round($imageHeight / $gcd);
+        return round(($newImageHeight / $heigthRadio) * $widthRadio);
+    }
+
+    private function getEquivalentResizeHeight($image, $newImageWidth)
+    {
+        $imageWidht  = $image->width();
+        $imageHeight = $image->height();
+        $gcd         = round($this->greatestCommonDivisor($imageWidht, $imageHeight));
+        $widthRadio  = round($imageWidht / $gcd);
+        $heigthRadio = round($imageHeight / $gcd);
+        return round(($newImageWidth / $widthRadio) * $heigthRadio);
     }
 
 }
