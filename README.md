@@ -94,35 +94,35 @@ class ExamplesTable extends Table
 		'file1'  => [
 			'image'  => [
 				'format'     => 'jpg',
-                    'quality'    => 75,
-                    'watermark'  => WWW_ROOT . 'img' . DS . 'watermark.png',
-                    'watermark_position' => 'bottom-right'
-				    'resize' => [
-				    	'width' => 500,
-						'height' => 600,
-				    ],
-				    'crop' => [
-				    	'width' => 400,
+				'quality'    => 75,
+				'watermark'  => WWW_ROOT . 'img' . DS . 'watermark.png',
+				'watermark_position' => 'bottom-right'
+				'resize' => [
+					'width' => 500,
+					'height' => 600,
+				],
+				'crop' => [
+					'width' => 400,
+					'height' => 400,
+				],
+				'thumbnails' => [
+					[
+						'width'  => 450,
 						'height' => 400,
-				    ],
-                    'thumbnails' => [ // Optional
-                        [
-                            'width'  => 450,
-                            'height' => 400,
-						    'crop' => [
-								'width' => 400,
-								'height' => 400,
-						    ],
-                        ],
-                        [
-                            'width'     => 225,
-                            'height'    => 200,
-                            'watermark' => false;
-                        ]
-                    ]
-                ]
-            ]
-        ]);
+						'crop' => [
+							'width' => 400,
+							'height' => 400,
+						],
+					],
+					[
+						'width'     => 225,
+						'height'    => 200,
+						'watermark' => false;
+					]
+				]
+			]
+		]
+	]);
 ```
 > **Image options:**
 > 
