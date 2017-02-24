@@ -225,55 +225,55 @@ There are two types of validators, one to validate information of the files call
 		$validator
 			->add('file1', 'isUnderPhpSizeLimit', [
 				'rule' => 'isUnderPhpSizeLimit', 
-				'message' => 'Must have a wider width',
+				'message' => 'Greater than the PHP size limit',
 				'provider' => 'upload'
 			]);
 		
 		$validator
 			->add('file1', 'isUnderFormSizeLimit', [
 				'rule' => 'isUnderFormSizeLimit',
-				'message' => 'Must have the shortest width',
+				'message' => 'Greater than the FORM size limit',
 				'provider' => 'upload'
 			]);
 			
 		$validator
 			->add('file1', 'isCompletedUpload', [
 				'rule' => 'isCompletedUpload',
-				'message' => 'Must have a wider height',
+				'message' => 'Upload not completed',
 				'provider' => 'upload'
 			]);
 			
 		$validator
 			->add('file1', 'isFileUpload', [
 				'rule' => 'isFileUpload',
-				'message' => 'Must have the shortest height',
+				'message' => 'File not uploaded',
 				'provider' => 'upload'
 			]);
 			
 		$validator
 			->add('file1', 'isSuccessfulWrite', [
 				'rule' => 'isSuccessfulWrite',
-				'message' => 'Wrong aspect ratio',
+				'message' => 'Failed to write file',
 				'provider' => 'upload'
 			]);
 			
 		$validator
 			->add('file1', 'isAboveMinSize', [
 				'rule' => ['isAboveMinSize', 2048],
-				'message' => 'Wrong image extension',
+				'message' => 'Does not have the minimum required size',
 				'provider' => 'upload'
 			]);
 		$validator
 			->add('file1', 'isBelowMaxSize', [
-				'rule' => ['isBelowMaxSize', 2048],
-				'message' => 'Must have the shortest height',
+				'rule' => ['isBelowMaxSize', 4096],
+				'message' => 'Exceeds the maximum size',
 				'provider' => 'upload'
 			]);
 			
 		$validator
 			->add('file1', 'isThisMimeType', [
 				'rule' => ['isThisMimeType', ['image/jpeg', 'image/png']],
-				'message' => 'Wrong aspect ratio',
+				'message' => 'File is not of the correct type',
 				'provider' => 'upload'
 			]);
 	}
