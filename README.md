@@ -103,16 +103,16 @@ class ExamplesTable extends Table
 		    ],
 		    'crop' => [
 		    	'width' => 400,
-			'height' => 400,
+				'height' => 400,
 		    ],
                     'thumbnails' => [ // Optional
                         [
                             'width'  => 450,
                             'height' => 400,
-			    'crop' => [
-				'width' => 400,
-				'height' => 400,
-			    ],
+						    'crop' => [
+								'width' => 400,
+								'height' => 400,
+						    ],
                         ],
                         [
                             'width'     => 225,
