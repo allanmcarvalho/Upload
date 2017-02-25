@@ -27,6 +27,10 @@ class UploadValidation
      */
     protected static function checkTmpFile($check)
     {
+        if (!is_array($check))
+        {
+            throw new Exception(__d('upload', "Misconfigured form"));
+        }
         if (isset($check['tmp_name']))
         {
             if (!is_file($check['tmp_name']))
@@ -38,6 +42,19 @@ class UploadValidation
             return false;
         }
         return true;
+    }
+
+    /**
+     * Verify if file input is a file array
+     * @param array $check
+     * @throws Exception
+     */
+    protected static function checkInputType($check)
+    {
+        if (!is_array($check))
+        {
+            throw new Exception(__d('upload', "Misconfigured form"));
+        }
     }
 
 }

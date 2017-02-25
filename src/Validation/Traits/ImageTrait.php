@@ -57,6 +57,7 @@ trait ImageTrait
      */
     public static function isAboveMinWidth($check, $width)
     {
+        self::checkInputType();
         if (!self::checkTmpFile($check))
         {
             return false;
@@ -75,6 +76,7 @@ trait ImageTrait
      */
     public static function isBelowMaxWidth($check, $width)
     {
+        self::checkInputType();
         if (!self::checkTmpFile($check))
         {
             return false;
@@ -93,6 +95,7 @@ trait ImageTrait
      */
     public static function isAboveMinHeight($check, $height)
     {
+        self::checkInputType();
         if (!self::checkTmpFile($check))
         {
             return false;
@@ -111,6 +114,7 @@ trait ImageTrait
      */
     public static function isBelowMaxHeight($check, $height)
     {
+        self::checkInputType();
         if (!self::checkTmpFile($check))
         {
             return false;
@@ -129,6 +133,7 @@ trait ImageTrait
      */
     public static function isThisWidth($check, $width)
     {
+        self::checkInputType();
         if (!self::checkTmpFile($check))
         {
             return false;
@@ -147,6 +152,7 @@ trait ImageTrait
      */
     public static function isThisHeight($check, $height)
     {
+        self::checkInputType();
         if (!self::checkTmpFile($check))
         {
             return false;
@@ -165,6 +171,7 @@ trait ImageTrait
      */
     public static function isThisWidthAndHeight($check, $width, $height)
     {
+        self::checkInputType();
         if (!self::checkTmpFile($check))
         {
             return false;
@@ -189,6 +196,7 @@ trait ImageTrait
      */
     public static function isThisAspectRatio($check, $width, $height)
     {
+        self::checkInputType();
         if (!self::checkTmpFile($check))
         {
             return false;
@@ -220,6 +228,7 @@ trait ImageTrait
      */
     public static function isThisExtension($check, $extensions = [])
     {
+        self::checkInputType();
         if (!self::checkTmpFile($check))
         {
             return false;

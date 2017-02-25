@@ -41,5 +41,18 @@ class DefaultValidation
         }
         return true;
     }
+    
+    /**
+     * Verify if file input is a file array
+     * @param array $check
+     * @throws Exception
+     */
+    protected static function checkInputType($check)
+    {
+        if (!is_array($check))
+        {
+            throw new Exception(__d('upload', "Misconfigured form"));
+        }
+    }
 
 }
