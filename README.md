@@ -314,7 +314,28 @@ or
 				'message' => 'Must have the shortest height',
 				'provider' => 'upload'
 			]);
+
+		$validator
+			->add('file1', 'isThisWidth', [
+				'rule' => ['isThisWidth', 800],
+				'message' => 'Must have a width of 800px',
+				'provider' => 'upload'
+			]);
 			
+		$validator
+			->add('file1', 'isThisHeight', [
+				'rule' => ['isThisHeight', 900],
+				'message' => 'Must have a height of 900px',
+				'provider' => 'upload'
+			]);
+
+		$validator
+			->add('file1', 'isThisWidthAndHeight', [
+				'rule' => ['isThisWidthAndHeight', 800, 900],
+				'message' => 'Must have a width of 800px and height of 900',
+				'provider' => 'upload'
+			]);
+							
 		$validator
 			->add('file1', 'isThisAspectRatio', [
 				'rule' => ['isThisAspectRatio', 3, 4],

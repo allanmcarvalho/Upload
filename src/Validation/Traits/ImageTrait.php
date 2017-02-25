@@ -119,6 +119,66 @@ trait ImageTrait
 
         return $image->height() > $height ? false : true;
     }
+    
+        /**
+     * Check that the file has exact width requirement
+     *
+     * @param mixed $check Value to check
+     * @param int $height Height of Image
+     * @return bool Success
+     */
+    public static function isThisWidth($check, $width)
+    {
+        if (!self::checkTmpFile($check))
+        {
+            return false;
+        }
+        $image = self::getImage($check['tmp_name']);
+
+        return $image->width() == $width ? true : false;
+    }
+
+    /**
+     * Check that the file has exact height requirement
+     *
+     * @param mixed $check Value to check
+     * @param int $height Height of Image
+     * @return bool Success
+     */
+    public static function isThisHeight($check, $height)
+    {
+        if (!self::checkTmpFile($check))
+        {
+            return false;
+        }
+        $image = self::getImage($check['tmp_name']);
+
+        return $image->height() == $height ? false : true;
+    }
+    
+    /**
+     * Check that the file has exact height requirement
+     *
+     * @param mixed $check Value to check
+     * @param int $height Height of Image
+     * @return bool Success
+     */
+    public static function isThisWidthAndHeight($check, $width, $height)
+    {
+        if (!self::checkTmpFile($check))
+        {
+            return false;
+        }
+        $image = self::getImage($check['tmp_name']);
+
+        if($image->width() == $width and $image->height() == $height)
+        {
+            return true;
+        }else
+        {
+            return false;
+        }
+    }
 
     /**
      * Checks if the image has a correct aspect ratio
