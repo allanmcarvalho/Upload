@@ -27,7 +27,7 @@ trait UploadTrait
      */
     public static function isUnderPhpSizeLimit($check)
     {
-        self::checkInputType();
+        self::checkInputType($check);
         return Hash::get($check, 'error') !== UPLOAD_ERR_INI_SIZE;
     }
 
@@ -40,7 +40,7 @@ trait UploadTrait
      */
     public static function isUnderFormSizeLimit($check)
     {
-        self::checkInputType();
+        self::checkInputType($check);
         return Hash::get($check, 'error') !== UPLOAD_ERR_FORM_SIZE;
     }
 
@@ -52,7 +52,7 @@ trait UploadTrait
      */
     public static function isCompletedUpload($check)
     {
-        self::checkInputType();
+        self::checkInputType($check);
         return Hash::get($check, 'error') !== UPLOAD_ERR_PARTIAL;
     }
 
@@ -64,7 +64,7 @@ trait UploadTrait
      */
     public static function isFileUpload($check)
     {
-        self::checkInputType();
+        self::checkInputType($check);
         return Hash::get($check, 'error') !== UPLOAD_ERR_NO_FILE;
     }
 
@@ -76,7 +76,7 @@ trait UploadTrait
      */
     public static function isSuccessfulWrite($check)
     {
-        self::checkInputType();
+        self::checkInputType($check);
         return Hash::get($check, 'error') !== UPLOAD_ERR_CANT_WRITE;
     }
 
@@ -89,7 +89,7 @@ trait UploadTrait
      */
     public static function isAboveMinSize($check, $size)
     {
-        self::checkInputType();
+        self::checkInputType($check);
         if (!self::checkTmpFile($check))
         {
             return false;
@@ -106,7 +106,7 @@ trait UploadTrait
      */
     public static function isBelowMaxSize($check, $size)
     {
-        self::checkInputType();
+        self::checkInputType($check);
         if (!self::checkTmpFile($check))
         {
             return false;
@@ -122,7 +122,7 @@ trait UploadTrait
      */
     public static function isThisMimeType($check, $mimeTypes = [])
     {
-        self::checkInputType();
+        self::checkInputType($check);
         if (!self::checkTmpFile($check))
         {
             return false;
