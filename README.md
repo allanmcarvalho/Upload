@@ -129,6 +129,7 @@ class ExamplesTable extends Table
 	 - **width:** (at least one) New image width. Default: **If height is set is automatic**;
 	 - **height:** (at least one) New image height. Default: **If width is set is automatic**;
  - **thumbnails:** (optional) Setting to set thumbnails to be created. Default: **Does not have**;
+	 - **label:** (optional) Label for the folder where the thumbnail will be saved. When not informed, the dimensions of the image will be the name of the folder.. Default: **Dimensions of the image**;
 	 - **width:** (at least one) Thumbnail width. Default: **If height is set is automatic**;
 	 - **height:** (at least one) Thumbnail height. Default: **If width is set is automatic**;
 	 - **watermark:** (optional) If `true` follows the default image settings (if exists). If `false` does not insert the watermark. If any setting is passed in an **array**, overwrites the default image settings. Default: `true`;

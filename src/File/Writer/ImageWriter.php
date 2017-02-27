@@ -188,6 +188,7 @@ class ImageWriter extends DefaultWriter
             $height     = Hash::get($thumbnail, 'height', false);
             $cropWidth  = Hash::get($thumbnail, 'crop.width', false);
             $cropHeight = Hash::get($thumbnail, 'crop.height', false);
+            $label      = Hash::get($thumbnail, 'label', false);
 
             if ($width === false and $height === false)
             {
@@ -212,33 +213,42 @@ class ImageWriter extends DefaultWriter
                 $height = $height <= $image->height() ? $height : $image->height();
             }
 
-            if ($cropWidth !== false or $cropHeight !== false)
+            if ($label == !false)
             {
-                if ($cropWidth === false)
-                {
-                    $cropWidth = $cropHeight <= $width ? $cropHeight : $width;
-                } else
-                {
-                    $cropWidth = $cropWidth <= $width ? $cropWidth : $width;
-                }
-
-                if ($cropHeight === false)
-                {
-                    $cropHeight = $cropWidth <= $height ? $cropWidth : $height;
-                } else
-                {
-                    $cropHeight = $cropHeight <= $height ? $cropHeight : $height;
-                }
-
-                if (!$this->_delete($this->getPath("{$cropWidth}x{$cropHeight}"), $filename))
+                if (!$this->_delete($this->getPath($label), $filename))
                 {
                     $result = false;
                 }
             } else
             {
-                if (!$this->_delete($this->getPath("{$width}x{$height}"), $filename))
+                if ($cropWidth !== false or $cropHeight !== false)
                 {
-                    $result = false;
+                    if ($cropWidth === false)
+                    {
+                        $cropWidth = $cropHeight <= $width ? $cropHeight : $width;
+                    } else
+                    {
+                        $cropWidth = $cropWidth <= $width ? $cropWidth : $width;
+                    }
+
+                    if ($cropHeight === false)
+                    {
+                        $cropHeight = $cropWidth <= $height ? $cropWidth : $height;
+                    } else
+                    {
+                        $cropHeight = $cropHeight <= $height ? $cropHeight : $height;
+                    }
+
+                    if (!$this->_delete($this->getPath("{$cropWidth}x{$cropHeight}"), $filename))
+                    {
+                        $result = false;
+                    }
+                } else
+                {
+                    if (!$this->_delete($this->getPath("{$width}x{$height}"), $filename))
+                    {
+                        $result = false;
+                    }
                 }
             }
         }

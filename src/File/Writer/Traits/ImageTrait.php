@@ -121,16 +121,16 @@ trait ImageTrait
         $targetHeight            = intval($image->height() * 0.07);
         $targetWarthermarkHeight = $targetHeight <= $watermark->height() ? $targetHeight : $watermark->height();
         $targetWarthermarkWidth  = $this->getEquivalentResizeWidth($watermark, $targetWarthermarkHeight);
-        
-        if($targetWarthermarkWidth > $image->width())
+
+        if ($targetWarthermarkWidth > $image->width())
         {
-            $targetWidth = intval($image->width() * 0.8);
-            $targetWarthermarkWidth = $targetWidth <= $watermark->width() ? $targetWidth : $watermark->width();
+            $targetWidth             = intval($image->width() * 0.8);
+            $targetWarthermarkWidth  = $targetWidth <= $watermark->width() ? $targetWidth : $watermark->width();
             $targetWarthermarkHeight = $this->getEquivalentResizeHeight($image, $targetWarthermarkWidth);
         }
 
         $this->resize($watermark, $targetWarthermarkWidth, $targetWarthermarkHeight);
-        
+
         $watermark->opacity($opacity);
 
         $image->insert($watermark, $position, round($image->width() * 0.05), round($image->height() * 0.05));
@@ -156,6 +156,7 @@ trait ImageTrait
             $cropHeight   = Hash::get($thumbnail, 'crop.height', false);
             $cropX        = Hash::get($thumbnail, 'crop.x', null);
             $cropY        = Hash::get($thumbnail, 'crop.y', null);
+            $label        = Hash::get($thumbnail, 'label', false);
 
             if ($width === false)
             {
@@ -175,18 +176,26 @@ trait ImageTrait
             }
 
             $watermarkPath = Hash::get($thumbnail, 'watermark.path', $this->watermark);
-            if(empty($watermarkPath))
+            if (empty($watermarkPath))
             {
                 $watermarkPath = $this->watermark;
             }
             if ($watermarkPath !== false and Hash::get($thumbnail, 'watermark', true))
             {
                 $watermarkPosition = Hash::get($thumbnail, 'watermark.position', $this->watermark_position);
-                $watermarkOpacity = Hash::get($thumbnail, 'watermark.opacity', $this->watermark_opacity);
+                $watermarkOpacity  = Hash::get($thumbnail, 'watermark.opacity', $this->watermark_opacity);
                 $this->insertWatermark($newThumbnail, $watermarkPath, $watermarkPosition, $watermarkOpacity);
             }
+            
+            if($label ==! false)
+            {
+                $subPath = $label;
+            }else
+            {
+                $subPath = "{$newThumbnail->getWidth()}x{$newThumbnail->getHeight()}";
+            }
 
-            if (!$newThumbnail->save($this->getPath("{$newThumbnail->getWidth()}x{$newThumbnail->getHeight()}") . $this->getFilename(), $this->getConfigImageQuality()))
+            if (!$newThumbnail->save($this->getPath($subPath) . $this->getFilename(), $this->getConfigImageQuality()))
             {
                 \Cake\Log\Log::error(__d('upload', 'Unable to salve thumbnail "{0}" in entity id "{1}" from table "{2}" and path "{3}" because it does not exist', $this->getFileName(), $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $this->getPath()));
             }
