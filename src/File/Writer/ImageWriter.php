@@ -34,6 +34,12 @@ class ImageWriter extends DefaultWriter
      * @var int 
      */
     private $resize_width = false;
+    
+    /**
+     * Make resize with min image size
+     * @var int 
+     */
+    private $resize_min_size = false;
 
     /**
      * value of crop height
@@ -103,6 +109,7 @@ class ImageWriter extends DefaultWriter
 
         $this->resize_heigth            = Hash::get($this->settings, 'image.resize.height', false);
         $this->resize_width             = Hash::get($this->settings, 'image.resize.width', false);
+        $this->resize_min_size          = Hash::get($this->settings, 'image.resize.min_size', false);
         $this->crop_heigth              = Hash::get($this->settings, 'image.crop.height', false);
         $this->crop_width               = Hash::get($this->settings, 'image.crop.width', false);
         $this->crop_x                   = Hash::get($this->settings, 'image.crop.x', null);
@@ -262,7 +269,7 @@ class ImageWriter extends DefaultWriter
      */
     private function modifyImage($image)
     {
-        $this->resize($image, $this->resize_width, $this->resize_heigth);
+        $this->resize($image, $this->resize_width, $this->resize_heigth, $this->resize_min_size);
 
         $this->crop($image, $this->crop_width, $this->crop_heigth, $this->crop_x, $this->crop_y);
 

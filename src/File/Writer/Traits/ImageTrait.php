@@ -46,8 +46,21 @@ trait ImageTrait
      * @param mixed $height must by smaller than the original
      * @return Image
      */
-    protected function resize($image, $width, $height)
+    protected function resize($image, $width, $height, $minSize)
     {
+        if ($width === false and $height === false and $minSize !== false)
+        {
+            if ($image->width() < $image->height())
+            {
+                $width = $minSize;
+            } elseif ($image->height() < $image->width())
+            {
+                $height = $minSize;
+            } elseif ($image->height() == $image->width())
+            {
+                $width = $minSize;
+            }
+        }
         if ($width !== false or $height !== false)
         {
             if ($width === false)
@@ -150,13 +163,33 @@ trait ImageTrait
         foreach ($this->thumbnails as $thumbnail)
         {
             $newThumbnail = $this->getImage($this->fileInfo['tmp_name']);
-            $width        = Hash::get($thumbnail, 'width', false);
-            $height       = Hash::get($thumbnail, 'height', false);
+            $width        = Hash::get($thumbnail, 'resize.width', false);
+            $height       = Hash::get($thumbnail, 'resize.height', false);
+            $minSize      = Hash::get($thumbnail, 'resize.min_size', false);
             $cropWidth    = Hash::get($thumbnail, 'crop.width', false);
             $cropHeight   = Hash::get($thumbnail, 'crop.height', false);
             $cropX        = Hash::get($thumbnail, 'crop.x', null);
             $cropY        = Hash::get($thumbnail, 'crop.y', null);
             $label        = Hash::get($thumbnail, 'label', false);
+
+            if($width === false and $height === false and $minSize === false and $cropWidth === false and $cropHeight === false)
+            {
+                continue;
+            }
+            
+            if ($width === false and $height === false and $minSize !== false)
+            {
+                if ($newThumbnail->width() < $newThumbnail->height())
+                {
+                    $width = $minSize;
+                } elseif ($newThumbnail->height() < $newThumbnail->width())
+                {
+                    $height = $minSize;
+                } elseif ($newThumbnail->height() == $newThumbnail->width())
+                {
+                    $width = $minSize;
+                }
+            }
 
             if ($width === false)
             {
@@ -186,11 +219,11 @@ trait ImageTrait
                 $watermarkOpacity  = Hash::get($thumbnail, 'watermark.opacity', $this->watermark_opacity);
                 $this->insertWatermark($newThumbnail, $watermarkPath, $watermarkPosition, $watermarkOpacity);
             }
-            
-            if($label ==! false)
+
+            if ($label == !false)
             {
                 $subPath = $label;
-            }else
+            } else
             {
                 $subPath = "{$newThumbnail->getWidth()}x{$newThumbnail->getHeight()}";
             }

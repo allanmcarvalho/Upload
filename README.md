@@ -128,17 +128,20 @@ class ExamplesTable extends Table
  - **resize:** (optional)  Changes the image size. Default: **Does not have**;
 	 - **width:** (at least one) New image width. Default: **If height is set is automatic**;
 	 - **height:** (at least one) New image height. Default: **If width is set is automatic**;
+	 - **min_size:** (at least one) Resize an image from the smaller side. Default: `false`;
  - **thumbnails:** (optional) Setting to set thumbnails to be created. Default: **Does not have**;
-	 - **label:** (optional) Label for the folder where the thumbnail will be saved. When not informed, the dimensions of the image will be the name of the folder.. Default: **Dimensions of the image**;
-	 - **width:** (at least one) Thumbnail width. Default: **If height is set is automatic**;
-	 - **height:** (at least one) Thumbnail height. Default: **If width is set is automatic**;
-	 - **watermark:** (optional) If `true` follows the default image settings (if exists). If `false` does not insert the watermark. If any setting is passed in an **array**, overwrites the default image settings. Default: `true`;
+	- **label:** (optional) Label for the folder where the thumbnail will be saved. When not informed, the dimensions of the image will be the name of the folder.. Default: **Dimensions of the image**;
+	- **resize:** (optional)  Changes the image size. Default: **Does not have**;
+		- **width:** (at least one) New image width. Default: **If height is set is automatic**;
+		- **height:** (at least one) New image height. Default: **If width is set is automatic**;
+		- **min_size:** (at least one) Resize an image from the smaller side. Default: `false`;
+	- **watermark:** (optional) If `true` follows the default image settings (if exists). If `false` does not insert the watermark. If any setting is passed in an **array**, overwrites the default image settings. Default: `true`;
 		 - **opacity:** (optional) Watermak opacity from 1 to 100 where the smaller is more transparent. Default:  **Same as original**.
 		 - **path:** (optional) Path to watermark image for this thumbnail. Default: **Same as original**;
 		 - **position:** (optional) Watermak orientation. Default: `bottom-right`. It can be the same positions quotes below;
-	 - **crop:** (optional) Crop the new thumbnail image. **Obs.:** If resize is also configured, it will be done before crop. Default: **Does not have**;
+	- **crop:** (optional) Crop the new thumbnail image. **Obs.:** If resize is also configured, it will be done before crop. Default: **Does not have**;
 		 - **width:** (required) New image crop width. Default:**Does not have**;
-		 - **height:** (required) New image height. Default: **Does not have**;
+		 - **height:** (required) New image crop height. Default: **Does not have**;
 		 - **x:** (required) The crop image x position. Default:  **Center**;
 	 	 - **y:** (required) The crop image y position. Default:  **Center**;
  - **watermark:** Insert watermark on image. Default: **Does not have**;
