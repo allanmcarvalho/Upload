@@ -34,7 +34,7 @@ class ImageWriter extends DefaultWriter
      * @var int 
      */
     private $resize_width = false;
-    
+
     /**
      * Make resize with min image size
      * @var int 
@@ -191,72 +191,16 @@ class ImageWriter extends DefaultWriter
         $result = true;
         foreach ($this->thumbnails as $thumbnail)
         {
-            $width      = Hash::get($thumbnail, 'width', false);
-            $height     = Hash::get($thumbnail, 'height', false);
-            $cropWidth  = Hash::get($thumbnail, 'crop.width', false);
-            $cropHeight = Hash::get($thumbnail, 'crop.height', false);
             $label      = Hash::get($thumbnail, 'label', false);
 
-            if ($width === false and $height === false)
+            if ($label === false)
             {
-                return false;
+                continue;
             }
 
-            if ($width === false)
+            if (!$this->_delete($this->getPath($label), $filename))
             {
-                $newWidth = $this->getEquivalentResizeWidth($image, $height);
-                $width    = $newWidth <= $image->width() ? $newWidth : $image->width();
-            } else
-            {
-                $width = $width <= $image->width() ? $width : $image->width();
-            }
-
-            if ($height === false)
-            {
-                $newHeight = $this->getEquivalentResizeHeight($image, $width);
-                $height    = $newHeight <= $image->height() ? $newHeight : $image->height();
-            } else
-            {
-                $height = $height <= $image->height() ? $height : $image->height();
-            }
-
-            if ($label == !false)
-            {
-                if (!$this->_delete($this->getPath($label), $filename))
-                {
-                    $result = false;
-                }
-            } else
-            {
-                if ($cropWidth !== false or $cropHeight !== false)
-                {
-                    if ($cropWidth === false)
-                    {
-                        $cropWidth = $cropHeight <= $width ? $cropHeight : $width;
-                    } else
-                    {
-                        $cropWidth = $cropWidth <= $width ? $cropWidth : $width;
-                    }
-
-                    if ($cropHeight === false)
-                    {
-                        $cropHeight = $cropWidth <= $height ? $cropWidth : $height;
-                    } else
-                    {
-                        $cropHeight = $cropHeight <= $height ? $cropHeight : $height;
-                    }
-
-                    if (!$this->_delete($this->getPath("{$cropWidth}x{$cropHeight}"), $filename))
-                    {
-                        $result = false;
-                    }
-                } else
-                {
-                    if (!$this->_delete($this->getPath("{$width}x{$height}"), $filename))
-                    {
-                        $result = false;
-                    }
-                }
+                $result = false;
             }
         }
         return $result;

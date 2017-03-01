@@ -89,12 +89,17 @@ class ExamplesTable extends Table
 				],
 				'thumbnails' => [
 					[
-						'height' => 750, // width will be automatically calculated
+						'label' => 'thumb1',
+						'resize' => [
+							'height' => 750,
+						],
 						'watermark' => false // Disables watermark for this item
 					],
 					[
-						'height' => 750,
-						'width' => 750,
+						'label' => 'thumb2',
+						'resize' => [
+							'min_size' => 750,
+						],
 						'watermark' => [
 							'opacity' => 60, // 60% of opacity
 							'position' => 'top', // center top position
@@ -120,7 +125,7 @@ class ExamplesTable extends Table
 >  
 >  - **crop:** (optional)  Crop the image. **Obs.:** If resize is also configured, it will be done before crop. Default: **Does not have**;
 	 - **width:** (at least one) The crop image width. Default: **If height is set is the same**;
-	 - **height:** (at least one) The crop image height. Default:  **If widthis set is the same**;
+	 - **height:** (at least one) The crop image height. Default:  **If width is set is the same**;
 	 - **x:** (optional) The crop image x position based from left. Default:  **Center**;
 	 - **y:** (optional) The crop image y position based from top. Default:  **Center**;
  - **format:** Image format. It can be (jpg, png, gif). Default: `jpg`;
@@ -130,7 +135,7 @@ class ExamplesTable extends Table
 	 - **height:** (at least one) New image height. Default: **If width is set is automatic**;
 	 - **min_size:** (at least one) Resize an image from the smaller side. Default: `false`;
  - **thumbnails:** (optional) Setting to set thumbnails to be created. Default: **Does not have**;
-	- **label:** (optional) Label for the folder where the thumbnail will be saved. When not informed, the dimensions of the image will be the name of the folder.. Default: **Dimensions of the image**;
+	- **label:** (required) Label for the folder where the thumbnail will be saved. . Default: **none**;
 	- **resize:** (optional)  Changes the image size. Default: **Does not have**;
 		- **width:** (at least one) New image width. Default: **If height is set is automatic**;
 		- **height:** (at least one) New image height. Default: **If width is set is automatic**;
@@ -140,8 +145,8 @@ class ExamplesTable extends Table
 		 - **path:** (optional) Path to watermark image for this thumbnail. Default: **Same as original**;
 		 - **position:** (optional) Watermak orientation. Default: `bottom-right`. It can be the same positions quotes below;
 	- **crop:** (optional) Crop the new thumbnail image. **Obs.:** If resize is also configured, it will be done before crop. Default: **Does not have**;
-		 - **width:** (required) New image crop width. Default:**Does not have**;
-		 - **height:** (required) New image crop height. Default: **Does not have**;
+		 - **width:** (required) New image crop width. Default:**If height is set is the same**;
+		 - **height:** (required) New image crop height. Default: **If width is set is the same**;
 		 - **x:** (required) The crop image x position. Default:  **Center**;
 	 	 - **y:** (required) The crop image y position. Default:  **Center**;
  - **watermark:** Insert watermark on image. Default: **Does not have**;

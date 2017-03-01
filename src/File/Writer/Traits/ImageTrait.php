@@ -142,7 +142,7 @@ trait ImageTrait
             $targetWarthermarkHeight = $this->getEquivalentResizeHeight($image, $targetWarthermarkWidth);
         }
 
-        $this->resize($watermark, $targetWarthermarkWidth, $targetWarthermarkHeight);
+        $this->resize($watermark, $targetWarthermarkWidth, $targetWarthermarkHeight, false);
 
         $watermark->opacity($opacity);
 
@@ -177,6 +177,11 @@ trait ImageTrait
                 continue;
             }
             
+            if($label === false)
+            {
+                continue;
+            }
+            
             if ($width === false and $height === false and $minSize !== false)
             {
                 if ($newThumbnail->width() < $newThumbnail->height())
@@ -201,7 +206,7 @@ trait ImageTrait
                 $height = $this->getEquivalentResizeHeight($newThumbnail, $width);
             }
 
-            $this->resize($newThumbnail, $width, $height);
+            $this->resize($newThumbnail, $width, $height, $minSize);
 
             if ($cropWidth !== false or $cropHeight !== false)
             {
@@ -220,15 +225,7 @@ trait ImageTrait
                 $this->insertWatermark($newThumbnail, $watermarkPath, $watermarkPosition, $watermarkOpacity);
             }
 
-            if ($label == !false)
-            {
-                $subPath = $label;
-            } else
-            {
-                $subPath = "{$newThumbnail->getWidth()}x{$newThumbnail->getHeight()}";
-            }
-
-            if (!$newThumbnail->save($this->getPath($subPath) . $this->getFilename(), $this->getConfigImageQuality()))
+            if (!$newThumbnail->save($this->getPath($label) . $this->getFilename(), $this->getConfigImageQuality()))
             {
                 \Cake\Log\Log::error(__d('upload', 'Unable to salve thumbnail "{0}" in entity id "{1}" from table "{2}" and path "{3}" because it does not exist', $this->getFileName(), $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $this->getPath()));
             }
