@@ -159,7 +159,18 @@ abstract class DefaultWriter implements WriterInterface
         if (Hash::get($this->settings, 'image', false))
         {
             $fileExtension = Hash::get($this->settings, 'image.format', 'jpg');
-            return substr($fileExtension, 0, 1) === '.' ? $fileExtension : '.' . $fileExtension;
+            if (!in_array($fileExtension, ['jpg', 'png', 'gif', 'same']))
+            {
+                $fileExtension = 'jpg';
+            }
+            if ($fileExtension === 'same')
+            {
+                $fileExtension = pathinfo(Hash::get($this->fileInfo, 'name', 'err'), PATHINFO_EXTENSION);
+                return substr($fileExtension, 0, 1) === '.' ? $fileExtension : '.' . $fileExtension;
+            } else
+            {
+                return substr($fileExtension, 0, 1) === '.' ? $fileExtension : '.' . $fileExtension;
+            }
         } else
         {
             $fileExtension = pathinfo(Hash::get($this->fileInfo, 'name', 'err'), PATHINFO_EXTENSION);
@@ -185,6 +196,8 @@ abstract class DefaultWriter implements WriterInterface
             $fileUniqidMoreEntropy = Hash::get($this->settings, 'more_entropy', true);
             $this->filename        = Hash::get($this->settings, 'filename', uniqid($filePrefix, $fileUniqidMoreEntropy)) . $this->getConfigFileFormat();
         }
+        
+        pr($this->getConfigFileFormat());exit;
 
         return $this->filename;
     }

@@ -128,7 +128,7 @@ class ExamplesTable extends Table
 	 - **height:** (at least one) The crop image height. Default:  **If width is set is the same**;
 	 - **x:** (optional) The crop image x position based from left. Default:  **Center**;
 	 - **y:** (optional) The crop image y position based from top. Default:  **Center**;
- - **format:** Image format. It can be (jpg, png, gif). Default: `jpg`;
+ - **format:** Image format. It can be (`jpg`, `png`, `gif`, `same` (same as the original)). Default: `jpg`;
  - **quality:** Image quality from 1 to 100. Default: `100`;
  - **resize:** (optional)  Changes the image size. Default: **Does not have**;
 	 - **width:** (at least one) New image width. Default: **If height is set is automatic**;
