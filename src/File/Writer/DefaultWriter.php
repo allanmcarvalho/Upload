@@ -196,9 +196,6 @@ abstract class DefaultWriter implements WriterInterface
             $fileUniqidMoreEntropy = Hash::get($this->settings, 'more_entropy', true);
             $this->filename        = Hash::get($this->settings, 'filename', uniqid($filePrefix, $fileUniqidMoreEntropy)) . $this->getConfigFileFormat();
         }
-        
-        pr($this->getConfigFileFormat());exit;
-
         return $this->filename;
     }
 
