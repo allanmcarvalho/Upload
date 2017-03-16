@@ -130,7 +130,7 @@ class ExamplesTable extends Table
 	 - **y:** (optional) The crop image y position based from top. Default:  **Center**;
  - **format:** Image format. It can be (`jpg`, `png`, `gif`, `same` (same as the original)). Default: `jpg`;
  - **quality:** Image quality from 1 to 100. Default: `100`;
- - **preserve_animation:** When the image is gif, its animation is not frozen. No changes (thubnails, crop ...) will be made in this image.. Default: `false`;
+ - **preserve_animation:** When the image is gif, its animation is not frozen. Format must be `same`. No changes (thubnails, crop ...) will be made in this image.. Default: `false`;
  - **resize:** (optional)  Changes the image size. Default: **Does not have**;
 	 - **width:** (at least one) New image width. Default: **If height is set is automatic**;
 	 - **height:** (at least one) New image height. Default: **If width is set is automatic**;
