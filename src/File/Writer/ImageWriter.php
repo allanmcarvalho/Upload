@@ -12,6 +12,8 @@ use Cake\ORM\Table;
 use Cake\ORM\Entity;
 use Cake\Utility\Hash;
 use Upload\File\Writer\Traits\ImageTrait;
+use Cake\Filesystem\File;
+
 
 /**
  * Description of DefaultWriter
@@ -66,6 +68,12 @@ class ImageWriter extends DefaultWriter
     private $crop_y = false;
 
     /**
+     * Preserves the animation when extension is gif
+     * @var bool 
+     */
+    private $preserveGifAnimation = false;
+
+    /**
      * value of watermark file path
      * @var string 
      */
@@ -114,6 +122,7 @@ class ImageWriter extends DefaultWriter
         $this->crop_width               = Hash::get($this->settings, 'image.crop.width', false);
         $this->crop_x                   = Hash::get($this->settings, 'image.crop.x', null);
         $this->crop_y                   = Hash::get($this->settings, 'image.crop.y', null);
+        $this->preserveGifAnimation     = Hash::get($this->settings, 'image.preserve_animation', false);
         $this->watermark                = Hash::get($this->settings, 'image.watermark.path', false);
         $this->watermark_position       = Hash::get($this->settings, 'image.watermark.position', 'bottom-right');
         $this->watermark_opacity        = Hash::get($this->settings, 'image.watermark.opacity', 100);
@@ -133,17 +142,33 @@ class ImageWriter extends DefaultWriter
             $this->createFilename(true);
         }
 
-        $image = $this->getImage($this->fileInfo['tmp_name']);
-
-        $this->modifyImage($image);
-
-        if ($image->save("{$this->getPath()}{$this->getFilename()}", $this->getConfigImageQuality()))
+        if ($this->preserveGifAnimation === true and $this->getConfigFileFormat() == '.gif')
         {
-            return $this->entity->set($this->field, "{$this->getFileName()}");
+            $file = new File($this->fileInfo['tmp_name'], true);
+
+            if ($file->copy("{$this->getPath()}{$this->getFilename()}"))
+            {
+                return $this->entity->set($this->field, "{$this->getFileName()}");
+            } else
+            {
+                \Cake\Log\Log::error(__d('upload', 'Unable to salve image "{0}" in entity id "{1}" from table "{2}" and path "{3}" because it does not exist', $this->getFileName(), $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $this->getPath()));
+                return false;
+            }
         } else
         {
-            \Cake\Log\Log::error(__d('upload', 'Unable to salve image "{0}" in entity id "{1}" from table "{2}" and path "{3}" because it does not exist', $this->getFileName(), $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $this->getPath()));
-            return false;
+            $image = $this->getImage($this->fileInfo['tmp_name']);
+
+            $this->modifyImage($image);
+
+
+            if ($image->save("{$this->getPath()}{$this->getFilename()}", $this->getConfigImageQuality()))
+            {
+                return $this->entity->set($this->field, "{$this->getFileName()}");
+            } else
+            {
+                \Cake\Log\Log::error(__d('upload', 'Unable to salve image "{0}" in entity id "{1}" from table "{2}" and path "{3}" because it does not exist', $this->getFileName(), $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $this->getPath()));
+                return false;
+            }
         }
     }
 
@@ -191,7 +216,7 @@ class ImageWriter extends DefaultWriter
         $result = true;
         foreach ($this->thumbnails as $thumbnail)
         {
-            $label      = Hash::get($thumbnail, 'label', false);
+            $label = Hash::get($thumbnail, 'label', false);
 
             if ($label === false)
             {

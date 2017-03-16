@@ -124,7 +124,8 @@ trait ImageTrait
         return $image->height() > $height ? false : true;
     }
     
-        /**
+    
+    /**
      * Check that the file has exact width requirement
      *
      * @param mixed $check Value to check
@@ -158,8 +159,7 @@ trait ImageTrait
             return false;
         }
         $image = self::getImage($check['tmp_name']);
-
-        return $image->height() == $height ? false : true;
+        return $image->height() == $height ? true : false;
     }
     
     /**
