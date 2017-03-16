@@ -284,6 +284,7 @@ There are two types of validators, one to validate information of the files call
 			->add('file1', 'isThisMimeType', [
 				'rule' => ['isThisMimeType', ['image/jpeg', 'image/png']],
 				'message' => 'File is not of the correct type',
+                                'last'     => true,
 				'provider' => 'upload'
 			]);
 	}
@@ -357,6 +358,7 @@ or
 			->add('file1', 'isThisExtension', [
 				'rule' => ['isThisExtension', ['jpg', 'png']],
 				'message' => 'Wrong image extension',
+                                'last'     => true,
 				'provider' => 'upload'
 			]);
 			
