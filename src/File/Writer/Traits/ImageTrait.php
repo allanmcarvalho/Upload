@@ -224,7 +224,7 @@ trait ImageTrait
                 $watermarkOpacity  = Hash::get($thumbnail, 'watermark.opacity', $this->watermark_opacity);
                 $this->insertWatermark($newThumbnail, $watermarkPath, $watermarkPosition, $watermarkOpacity);
             }
-
+            $newThumbnail->interlace(true);
             if (!$newThumbnail->save($this->getPath($label) . $this->getFilename(), $this->getConfigImageQuality()))
             {
                 \Cake\Log\Log::error(__d('upload', 'Unable to salve thumbnail "{0}" in entity id "{1}" from table "{2}" and path "{3}" because it does not exist', $this->getFileName(), $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $this->getPath()));

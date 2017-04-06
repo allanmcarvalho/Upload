@@ -159,8 +159,8 @@ class ImageWriter extends DefaultWriter
             $image = $this->getImage($this->fileInfo['tmp_name']);
 
             $this->modifyImage($image);
-
-
+            
+            $image->interlace(true);
             if ($image->save("{$this->getPath()}{$this->getFilename()}", $this->getConfigImageQuality()))
             {
                 return $this->entity->set($this->field, "{$this->getFileName()}");
