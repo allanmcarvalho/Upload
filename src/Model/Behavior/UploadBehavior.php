@@ -61,7 +61,7 @@ class UploadBehavior extends Behavior
             {
                 continue;
             }
-            if (Hash::get($dataArray, $field . '.error') !== UPLOAD_ERR_NO_FILE)
+            if (Hash::get($dataArray, $field . '.error') != UPLOAD_ERR_NO_FILE)
             {
                 continue;
             }
