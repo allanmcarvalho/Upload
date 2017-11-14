@@ -82,7 +82,7 @@ class UploadBehavior extends Behavior
         {
             if ($entity->has($field) and $entity->dirty($field))
             {
-                if (Hash::get((array) $entity->get($field), 'error') !== UPLOAD_ERR_OK)
+                if (Hash::get((array) $entity->get($field), 'error') != UPLOAD_ERR_OK)
                 {
                     \Cake\Log\Log::write(\Psr\Log\LogLevel::ERROR, __d('upload', 'File upload had the following error: {0}', $this->getUploadError($entity->get($field)['error'])));
                     return false;
