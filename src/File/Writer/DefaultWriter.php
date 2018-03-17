@@ -8,6 +8,7 @@
 
 namespace Upload\File\Writer;
 
+use Cake\Log\Log;
 use Cake\ORM\Table;
 use Cake\ORM\Entity;
 use Cake\Filesystem\File;
@@ -74,8 +75,8 @@ abstract class DefaultWriter implements WriterInterface
      * Construct Method
      * @param Table $table
      * @param Entity $entity
-     * @param type $field
-     * @param type $settings
+     * @param string $field
+     * @param array $settings
      */
     public function __construct(Table $table, Entity $entity, $field, $settings)
     {
@@ -89,7 +90,8 @@ abstract class DefaultWriter implements WriterInterface
 
     /**
      * Delete a file from path
-     * @param string $PathAndFilename
+     * @param $path
+     * @param $filename
      * @return boolean
      */
     protected function _delete($path, $filename)
@@ -99,12 +101,12 @@ abstract class DefaultWriter implements WriterInterface
         {
             if (!$file->delete())
             {
-                \Cake\Log\Log::error(__d('upload', 'Unable to delete file "{0}" in entity id "{1}" from table "{2}" and path "{3}"', $filename, $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $path));
+                Log::error(__d('upload', 'Unable to delete file "{0}" in entity id "{1}" from table "{2}" and path "{3}"', $filename, $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $path));
                 return false;
             }
         } else
         {
-            \Cake\Log\Log::error(__d('upload', 'Unable to delete file "{0}" in entity id "{1}" from table "{2}" and path "{3}" because it does not exist', $filename, $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $path));
+            Log::error(__d('upload', 'Unable to delete file "{0}" in entity id "{1}" from table "{2}" and path "{3}" because it does not exist', $filename, $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $path));
             return false;
         }
         return true;
@@ -112,6 +114,7 @@ abstract class DefaultWriter implements WriterInterface
 
     /**
      * Get a path to save file
+     * @param null|string $subDirectory
      * @return string
      */
     protected function getPath($subDirectory = null)
@@ -146,13 +149,13 @@ abstract class DefaultWriter implements WriterInterface
     {
         if (!new Folder($path, true))
         {
-            \Cake\Log\Log::error(__d('upload', 'Unable to create directory: {0}', $path));
+            Log::error(__d('upload', 'Unable to create directory: {0}', $path));
         }
     }
 
     /**
      * get a image save format from behavior config
-     * @return type
+     * @return string
      */
     protected function getConfigFileFormat()
     {
@@ -188,13 +191,13 @@ abstract class DefaultWriter implements WriterInterface
         if ($this->filename === null)
         {
             $filePrefix            = Hash::get($this->settings, 'prefix', '');
-            $fileUniqidMoreEntropy = Hash::get($this->settings, 'more_entropy', true);
-            $this->filename        = Hash::get($this->settings, 'filename', uniqid($filePrefix, $fileUniqidMoreEntropy)) . $this->getConfigFileFormat();
+            $fileUniqueMoreEntropy = Hash::get($this->settings, 'more_entropy', true);
+            $this->filename        = Hash::get($this->settings, 'filename', uniqid($filePrefix, $fileUniqueMoreEntropy)) . $this->getConfigFileFormat();
         } elseif ($ifExistCreateNew === true)
         {
             $filePrefix            = Hash::get($this->settings, 'prefix', '');
-            $fileUniqidMoreEntropy = Hash::get($this->settings, 'more_entropy', true);
-            $this->filename        = Hash::get($this->settings, 'filename', uniqid($filePrefix, $fileUniqidMoreEntropy)) . $this->getConfigFileFormat();
+            $fileUniqueMoreEntropy = Hash::get($this->settings, 'more_entropy', true);
+            $this->filename        = Hash::get($this->settings, 'filename', uniqid($filePrefix, $fileUniqueMoreEntropy)) . $this->getConfigFileFormat();
         }
         return $this->filename;
     }

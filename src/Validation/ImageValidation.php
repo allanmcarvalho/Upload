@@ -8,6 +8,7 @@
 
 namespace Upload\Validation;
 
+use Cake\Core\Exception\Exception;
 use Upload\Validation\Traits\ImageTrait;
 
 /**

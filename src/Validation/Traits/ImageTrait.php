@@ -123,13 +123,13 @@ trait ImageTrait
 
         return $image->height() > $height ? false : true;
     }
-    
-    
+
+
     /**
      * Check that the file has exact width requirement
      *
      * @param mixed $check Value to check
-     * @param int $height Height of Image
+     * @param $width
      * @return bool Success
      */
     public static function isThisWidth($check, $width)
@@ -161,11 +161,12 @@ trait ImageTrait
         $image = self::getImage($check['tmp_name']);
         return $image->height() == $height ? true : false;
     }
-    
+
     /**
      * Check that the file has exact height requirement
      *
      * @param mixed $check Value to check
+     * @param $width
      * @param int $height Height of Image
      * @return bool Success
      */

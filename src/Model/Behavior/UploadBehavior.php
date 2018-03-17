@@ -8,14 +8,15 @@
 
 namespace Upload\Model\Behavior;
 
+use Cake\Log\Log;
 use Cake\ORM\Behavior;
-use Intervention\Image\Image;
 use Cake\Event\Event;
-use Cake\ORM\Query;
 use Cake\Datasource\EntityInterface;
 use Cake\Utility\Hash;
 use Cake\Database\Type;
 use Cake\ORM\Entity;
+use Psr\Log\LogLevel;
+use UnexpectedValueException;
 
 /**
  * CakePHP UploadBehavior
@@ -46,14 +47,14 @@ class UploadBehavior extends Behavior
         $schema = $this->_table->getSchema();
         foreach (array_keys($this->getConfig()) as $field)
         {
-            $schema->columnType($field, 'upload.file');
+            $schema->setColumnType($field, 'upload.file');
         }
-        $this->_table->schema($schema);
+        $this->_table->setSchema($schema);
     }
 
     public function beforeMarshal(Event $event, \ArrayObject $data, \ArrayObject $options)
     {
-        $validator = $this->_table->validator();
+        $validator = $this->_table->getValidator();
         $dataArray = $data->getArrayCopy();
         foreach (array_keys($this->getConfig()) as $field)
         {
@@ -70,21 +71,22 @@ class UploadBehavior extends Behavior
     }
 
     /**
-     * 
+     *
      * @param Event $event
      * @param EntityInterface $entity
      * @param \ArrayObject $options
      * @return boolean
+     * @throws UnexpectedValueException
      */
     public function beforeSave(Event $event, EntityInterface $entity, \ArrayObject $options)
     {
         foreach ($this->getConfig() as $field => $settings)
         {
-            if ($entity->has($field) and $entity->dirty($field))
+            if ($entity->has($field) and $entity->isDirty($field))
             {
                 if (Hash::get((array) $entity->get($field), 'error') != UPLOAD_ERR_OK)
                 {
-                    \Cake\Log\Log::write(\Psr\Log\LogLevel::ERROR, __d('upload', 'File upload had the following error: {0}', $this->getUploadError($entity->get($field)['error'])));
+                    Log::write(LogLevel::ERROR, __d('upload', 'File upload had the following error: {0}', $this->getUploadError($entity->get($field)['error'])));
                     return false;
                 }
 
@@ -95,6 +97,7 @@ class UploadBehavior extends Behavior
                 }
             }
         }
+        return null;
     }
 
     public function afterDelete(Event $event, Entity $entity, \ArrayObject $options)
@@ -114,6 +117,7 @@ class UploadBehavior extends Behavior
         {
             return $result;
         }
+        return null;
     }
 
     /**
@@ -124,6 +128,7 @@ class UploadBehavior extends Behavior
      */
     public function deleteFiles($entity, $fields = [])
     {
+        $configs = [];
         if (empty($fields))
         {
             $configs = $this->getConfig();

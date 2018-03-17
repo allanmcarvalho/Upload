@@ -8,6 +8,7 @@
 
 namespace Upload\File\Writer;
 
+use Cake\Log\Log;
 use Cake\ORM\Table;
 use Cake\ORM\Entity;
 use Cake\Utility\Hash;
@@ -29,7 +30,7 @@ class ImageWriter extends DefaultWriter
      * value of resize height
      * @var int 
      */
-    private $resize_heigth = false;
+    private $resize_height = false;
 
     /**
      * value of resize width
@@ -47,7 +48,7 @@ class ImageWriter extends DefaultWriter
      * value of crop height
      * @var int 
      */
-    private $crop_heigth = false;
+    private $crop_height = false;
 
     /**
      * value of crop width
@@ -107,18 +108,18 @@ class ImageWriter extends DefaultWriter
      * Constructor method
      * @param Table $table
      * @param Entity $entity
-     * @param type $field
-     * @param type $settings
+     * @param string $field
+     * @param array $settings
      */
     public function __construct(Table $table, Entity $entity, $field, $settings)
     {
         parent::__construct($table, $entity, $field, $settings);
         $this->defaultPath = WWW_ROOT . 'img' . DS . $this->table->getAlias() . DS;
 
-        $this->resize_heigth            = Hash::get($this->settings, 'image.resize.height', false);
+        $this->resize_height            = Hash::get($this->settings, 'image.resize.height', false);
         $this->resize_width             = Hash::get($this->settings, 'image.resize.width', false);
         $this->resize_min_size          = Hash::get($this->settings, 'image.resize.min_size', false);
-        $this->crop_heigth              = Hash::get($this->settings, 'image.crop.height', false);
+        $this->crop_height              = Hash::get($this->settings, 'image.crop.height', false);
         $this->crop_width               = Hash::get($this->settings, 'image.crop.width', false);
         $this->crop_x                   = Hash::get($this->settings, 'image.crop.x', null);
         $this->crop_y                   = Hash::get($this->settings, 'image.crop.y', null);
@@ -132,7 +133,7 @@ class ImageWriter extends DefaultWriter
 
     /**
      * write a image
-     * @return boolean
+     * @return boolean|string
      */
     public function write()
     {
@@ -151,7 +152,7 @@ class ImageWriter extends DefaultWriter
                 return $this->entity->set($this->field, "{$this->getFileName()}");
             } else
             {
-                \Cake\Log\Log::error(__d('upload', 'Unable to salve image "{0}" in entity id "{1}" from table "{2}" and path "{3}" because it does not exist', $this->getFileName(), $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $this->getPath()));
+                Log::error(__d('upload', 'Unable to salve image "{0}" in entity id "{1}" from table "{2}" and path "{3}" because it does not exist', $this->getFileName(), $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $this->getPath()));
                 return false;
             }
         } else
@@ -166,7 +167,7 @@ class ImageWriter extends DefaultWriter
                 return $this->entity->set($this->field, "{$this->getFileName()}");
             } else
             {
-                \Cake\Log\Log::error(__d('upload', 'Unable to salve image "{0}" in entity id "{1}" from table "{2}" and path "{3}" because it does not exist', $this->getFileName(), $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $this->getPath()));
+                Log::error(__d('upload', 'Unable to salve image "{0}" in entity id "{1}" from table "{2}" and path "{3}" because it does not exist', $this->getFileName(), $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $this->getPath()));
                 return false;
             }
         }
@@ -174,11 +175,12 @@ class ImageWriter extends DefaultWriter
 
     /**
      * delete images
-     * @param bool $isUptade
+     * @param bool $isUpdate
+     * @return bool
      */
-    public function delete($isUptade = false)
+    public function delete($isUpdate = false)
     {
-        if ($isUptade === false)
+        if ($isUpdate === false)
         {
             $entity = &$this->entity;
         } else
@@ -204,7 +206,9 @@ class ImageWriter extends DefaultWriter
 
     /**
      * Delete image thumbnails
-     * @param \Intervention\Image\Image $image
+     * @param $path
+     * @param $filename
+     * @return bool
      */
     public function deleteThubnails($path, $filename)
     {
@@ -234,13 +238,13 @@ class ImageWriter extends DefaultWriter
     /**
      * Modifier function calls
      * @param \Intervention\Image\Image $image
-     * @return \Intervention\Image\Image
+     * @return void
      */
     private function modifyImage($image)
     {
-        $this->resize($image, $this->resize_width, $this->resize_heigth, $this->resize_min_size);
+        $this->resize($image, $this->resize_width, $this->resize_height, $this->resize_min_size);
 
-        $this->crop($image, $this->crop_width, $this->crop_heigth, $this->crop_x, $this->crop_y);
+        $this->crop($image, $this->crop_width, $this->crop_height, $this->crop_x, $this->crop_y);
 
         $this->createThumbnails();
 
@@ -252,7 +256,7 @@ class ImageWriter extends DefaultWriter
 
     /**
      * get a image quality from behavior config
-     * @return type
+     * @return int
      */
     private function getConfigImageQuality()
     {

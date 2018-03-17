@@ -8,6 +8,7 @@
 
 namespace Upload\File\Writer\Traits;
 
+use Cake\Log\Log;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Image;
 use Cake\Utility\Hash;
@@ -40,11 +41,12 @@ trait ImageTrait
     }
 
     /**
-     * Resize a imagem based in 
+     * Resize a imagem based in
      * @param Image $image
      * @param mixed $width must by smaller than the original
      * @param mixed $height must by smaller than the original
-     * @return Image
+     * @param $minSize
+     * @return void
      */
     protected function resize($image, $width, $height, $minSize)
     {
@@ -87,7 +89,9 @@ trait ImageTrait
      * @param Image $image
      * @param mixed $width
      * @param mixed $height
-     * @return Image
+     * @param $x
+     * @param $y
+     * @return void
      */
     protected function crop($image, $width, $height, $x, $y)
     {
@@ -126,23 +130,24 @@ trait ImageTrait
      * @param \Intervention\Image\Image $image
      * @param string $path
      * @param string $position
-     * @return \Intervention\Image\Image
+     * @param $opacity
+     * @return void
      */
     protected function insertWatermark($image, $path, $position, $opacity)
     {
         $watermark               = $this->getImage($path);
         $targetHeight            = intval($image->height() * 0.07);
-        $targetWarthermarkHeight = $targetHeight <= $watermark->height() ? $targetHeight : $watermark->height();
-        $targetWarthermarkWidth  = $this->getEquivalentResizeWidth($watermark, $targetWarthermarkHeight);
+        $targetWatermarkHeight = $targetHeight <= $watermark->height() ? $targetHeight : $watermark->height();
+        $targetWatermarkWidth  = $this->getEquivalentResizeWidth($watermark, $targetWatermarkHeight);
 
-        if ($targetWarthermarkWidth > $image->width())
+        if ($targetWatermarkWidth > $image->width())
         {
             $targetWidth             = intval($image->width() * 0.8);
-            $targetWarthermarkWidth  = $targetWidth <= $watermark->width() ? $targetWidth : $watermark->width();
-            $targetWarthermarkHeight = $this->getEquivalentResizeHeight($image, $targetWarthermarkWidth);
+            $targetWatermarkWidth  = $targetWidth <= $watermark->width() ? $targetWidth : $watermark->width();
+            $targetWatermarkHeight = $this->getEquivalentResizeHeight($image, $targetWatermarkWidth);
         }
 
-        $this->resize($watermark, $targetWarthermarkWidth, $targetWarthermarkHeight, false);
+        $this->resize($watermark, $targetWatermarkWidth, $targetWatermarkHeight, false);
 
         $watermark->opacity($opacity);
 
@@ -150,8 +155,7 @@ trait ImageTrait
     }
 
     /**
-     * 
-     * @param \Intervention\Image\Image $thumbnailImage
+     *
      * @return boolean
      */
     protected function createThumbnails()
@@ -227,7 +231,7 @@ trait ImageTrait
             $newThumbnail->interlace(true);
             if (!$newThumbnail->save($this->getPath($label) . $this->getFilename(), $this->getConfigImageQuality()))
             {
-                \Cake\Log\Log::error(__d('upload', 'Unable to salve thumbnail "{0}" in entity id "{1}" from table "{2}" and path "{3}" because it does not exist', $this->getFileName(), $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $this->getPath()));
+                Log::error(__d('upload', 'Unable to salve thumbnail "{0}" in entity id "{1}" from table "{2}" and path "{3}" because it does not exist', $this->getFileName(), $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $this->getPath()));
             }
             unset($newThumbnail);
         }
@@ -252,22 +256,27 @@ trait ImageTrait
      */
     private function getEquivalentResizeWidth($image, $newImageHeight)
     {
-        $imageWidht  = $image->width();
+        $imageWidth  = $image->width();
         $imageHeight = $image->height();
-        $gcd         = round($this->greatestCommonDivisor($imageWidht, $imageHeight));
-        $widthRadio  = round($imageWidht / $gcd);
-        $heigthRadio = round($imageHeight / $gcd);
-        return round(($newImageHeight / $heigthRadio) * $widthRadio);
+        $gcd         = round($this->greatestCommonDivisor($imageWidth, $imageHeight));
+        $widthRadio  = round($imageWidth / $gcd);
+        $heightRadio = round($imageHeight / $gcd);
+        return round(($newImageHeight / $heightRadio) * $widthRadio);
     }
 
+    /**
+     * @param Image $image
+     * @param $newImageWidth
+     * @return float
+     */
     private function getEquivalentResizeHeight($image, $newImageWidth)
     {
-        $imageWidht  = $image->width();
+        $imageWidth  = $image->width();
         $imageHeight = $image->height();
-        $gcd         = round($this->greatestCommonDivisor($imageWidht, $imageHeight));
-        $widthRadio  = round($imageWidht / $gcd);
-        $heigthRadio = round($imageHeight / $gcd);
-        return round(($newImageWidth / $widthRadio) * $heigthRadio);
+        $gcd         = round($this->greatestCommonDivisor($imageWidth, $imageHeight));
+        $widthRadio  = round($imageWidth / $gcd);
+        $heightRadio = round($imageHeight / $gcd);
+        return round(($newImageWidth / $widthRadio) * $heightRadio);
     }
 
 }

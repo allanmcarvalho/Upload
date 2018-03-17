@@ -8,6 +8,7 @@
 
 namespace Upload\File\Writer;
 
+use Cake\Log\Log;
 use Cake\ORM\Table;
 use Cake\ORM\Entity;
 use Cake\Filesystem\File;
@@ -30,8 +31,8 @@ class FileWriter extends DefaultWriter
 
     /**
      * write a file
-     * @return boolean
-     */
+     * @return boolean|string
+*/
     public function write()
     {
         if (!$this->entity->isNew())
@@ -47,19 +48,19 @@ class FileWriter extends DefaultWriter
             return $this->entity->set($this->field, "{$this->getFileName()}");
         } else
         {
-            \Cake\Log\Log::error(__d('upload', 'Unable to salve file "{0}" in entity id "{1}" from table "{2}" and path "{3}" because it does not exist', $this->getFileName(), $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $this->getPath()));
+            Log::error(__d('upload', 'Unable to salve file "{0}" in entity id "{1}" from table "{2}" and path "{3}" because it does not exist', $this->getFileName(), $this->entity->get($this->table->getPrimaryKey()), $this->table->getTable(), $this->getPath()));
             return false;
         }
     }
 
     /**
      * Delete method that delete primary and thumbnails images
-     * @param bool $isUptade
+     * @param bool $isUpdate
      * @return bool
      */
-    public function delete($isUptade = false)
+    public function delete($isUpdate = false)
     {
-        if($isUptade === false)
+        if($isUpdate === false)
         {
             $entity = &$this->entity;
         }else
