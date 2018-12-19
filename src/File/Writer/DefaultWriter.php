@@ -8,11 +8,11 @@
 
 namespace Upload\File\Writer;
 
-use Cake\Log\Log;
-use Cake\ORM\Table;
-use Cake\ORM\Entity;
 use Cake\Filesystem\File;
 use Cake\Filesystem\Folder;
+use Cake\Log\Log;
+use Cake\ORM\Entity;
+use Cake\ORM\Table;
 use Cake\Utility\Hash;
 
 /**

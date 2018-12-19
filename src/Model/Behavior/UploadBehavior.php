@@ -8,13 +8,13 @@
 
 namespace Upload\Model\Behavior;
 
+use Cake\Database\Type;
+use Cake\Datasource\EntityInterface;
+use Cake\Event\Event;
 use Cake\Log\Log;
 use Cake\ORM\Behavior;
-use Cake\Event\Event;
-use Cake\Datasource\EntityInterface;
-use Cake\Utility\Hash;
-use Cake\Database\Type;
 use Cake\ORM\Entity;
+use Cake\Utility\Hash;
 use Psr\Log\LogLevel;
 use UnexpectedValueException;
 

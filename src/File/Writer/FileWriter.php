@@ -8,10 +8,10 @@
 
 namespace Upload\File\Writer;
 
-use Cake\Log\Log;
-use Cake\ORM\Table;
-use Cake\ORM\Entity;
 use Cake\Filesystem\File;
+use Cake\Log\Log;
+use Cake\ORM\Entity;
+use Cake\ORM\Table;
 
 /**
  * Description of DefaultWriter

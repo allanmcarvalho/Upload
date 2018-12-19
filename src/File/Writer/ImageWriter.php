@@ -8,12 +8,12 @@
 
 namespace Upload\File\Writer;
 
+use Cake\Filesystem\File;
 use Cake\Log\Log;
-use Cake\ORM\Table;
 use Cake\ORM\Entity;
+use Cake\ORM\Table;
 use Cake\Utility\Hash;
 use Upload\File\Writer\Traits\ImageTrait;
-use Cake\Filesystem\File;
 
 
 /**
